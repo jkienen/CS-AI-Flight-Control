@@ -1,0 +1,54 @@
+Hello,
+
+Please make the changes below.
+
+GENERAL NOTES
+- Please identify every CID by its CID string.
+- Rule for all CIDs: Incident Aggregation must always have the same value as Detection Aggregation.
+- Some CIDs are renamed in Step 1, so the names shown in later steps are the names after the rename.
+- Please do the steps in order: 1, 2, 3.
+- Please do not change anything that is not listed below.
+
+
+STEP 1 - RENAME CIDs
+
+1.1 Please rename these 4 CIDs. Format: CID string: current name -> new name.
+- 0000000000000000000007214cdd2055: "ADD | Bravo Retail" -> "ADD | Bravo Retail - Mobile"
+- 000000000000000000000c3ababced20: "ADD | Delta Health" -> "ADD | Delta Health - Mobile"
+- 0000000000000000000007bc1e398f10: "ADD | Echo Media" -> "ADD | Echo Media - Mobile"
+- 0000000000000000000005555790f82e: "ADD | Golf Motors" -> "ADD | Golf Motors - Mobile"
+
+
+STEP 2 - CHANGE PARENT LINKS
+
+2.1 Please link these 2 CIDs to parent 000000000000000000000fd0a6a3a450 (01 - Example Corp | Managed). After this change, their parents must be 000000000000000000000fd0a6a3a450 (01 - Example Corp | Managed) and 000000000000000000000bfbc7a2ea20 (03 - Example Corp | Add-ons).
+- 0000000000000000000007214cdd2055 (ADD | Bravo Retail - Mobile)
+- 000000000000000000000c3ababced20 (ADD | Delta Health - Mobile)
+
+2.2 Please link these 2 CIDs to parent 00000000000000000000029c658cda14 (02 - Example Corp | Self-Service). After this change, their parents must be 00000000000000000000029c658cda14 (02 - Example Corp | Self-Service) and 000000000000000000000bfbc7a2ea20 (03 - Example Corp | Add-ons).
+- 0000000000000000000007bc1e398f10 (ADD | Echo Media - Mobile)
+- 0000000000000000000005555790f82e (ADD | Golf Motors - Mobile)
+
+
+STEP 3 - CHANGE SETTINGS
+
+3.1 Please enable Policy Inheritance on this CID:
+- 000000000000000000000a268d116ece (MGD | Charlie Foods)
+
+
+EXPECTED RESULT
+- 29 CIDs in total.
+- 000000000000000000000de452e6b438 (0 - Example Corp | Global Parent) has 4 child CIDs.
+- 000000000000000000000fd0a6a3a450 (01 - Example Corp | Managed) has 8 child CIDs (2 of them as additional parent).
+- 00000000000000000000029c658cda14 (02 - Example Corp | Self-Service) has 11 child CIDs (2 of them as additional parent).
+- 000000000000000000000bfbc7a2ea20 (03 - Example Corp | Add-ons) has 7 child CIDs.
+- 000000000000000000000cdd9474031b (04 - Example Corp | Trials) has 2 child CIDs.
+- 0000000000000000000007214cdd2055 (ADD | Bravo Retail - Mobile) also has additional parent 000000000000000000000fd0a6a3a450 (01 - Example Corp | Managed).
+- 000000000000000000000c3ababced20 (ADD | Delta Health - Mobile) also has additional parent 000000000000000000000fd0a6a3a450 (01 - Example Corp | Managed).
+- 0000000000000000000007bc1e398f10 (ADD | Echo Media - Mobile) also has additional parent 00000000000000000000029c658cda14 (02 - Example Corp | Self-Service).
+- 0000000000000000000005555790f82e (ADD | Golf Motors - Mobile) also has additional parent 00000000000000000000029c658cda14 (02 - Example Corp | Self-Service).
+- Policy Inheritance is enabled only on: 000000000000000000000a268d116ece (MGD | Charlie Foods); 000000000000000000000162ae2eb154 (SLF | Kilo Systems).
+- Detection Aggregation is enabled on all 29 CIDs.
+- Incident Aggregation is enabled on all 29 CIDs.
+
+Thanks,
