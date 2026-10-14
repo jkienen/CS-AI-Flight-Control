@@ -3,7 +3,7 @@
 > An AI-driven review toolkit for the CrowdStrike Falcon **Flight Control CID hierarchy**: it draws your current parent/child structure from a console export, applies the corrections you describe in plain language, and writes the step-by-step **ticket for CrowdStrike support**, with no hand-built CSVs and no names checked one by one.
 
 <p align="center">
-  <img src="Files/flight-control-graph.png" alt="Example generated graph (fictional data): the CID hierarchy from the root through four service lines to their tenants, with a tenant selected that has two parents, and its detail card in the side panel.">
+  <img src="Files/flight-control-graph.png" alt="Example generated graph (fictional data): the CID hierarchy from the root through four service lines to their tenants, with the root CID selected, every link of the hierarchy lit up, and its detail card in the side panel.">
 </p>
 
 <table width="100%">
@@ -131,11 +131,11 @@ The day's `CIDs.html` is an interactive graph built on the same page pyvis write
 <tr><th align="left">Element<div><img width="300" height="1" alt=""></div></th><th align="left">What it shows<div><img width="900" height="1" alt=""></div></th></tr>
 </thead>
 <tbody>
-<tr><td>Layout</td><td>A tree from left to right: the root CID, the service lines (its direct children), one band per line from top to bottom, and each line's tenants in columns</td></tr>
+<tr><td>Layout</td><td>A tree from left to right: the root CID, the service lines (its direct children), one band per line from top to bottom, and each line's tenants stacked one below the other, close together, with their names to the right</td></tr>
 <tr><td>Colors</td><td>One color per service line, shared by every CID under it</td></tr>
 <tr><td>Links</td><td>Parent → child in purple with Policy Inheritance, gray without it; child → parent in green with Detection Aggregation; dashed for an additional parent</td></tr>
 <tr><td>Views</td><td><strong>Expected</strong> (after the changes) and <strong>Today</strong> (the export), side by side in the same page</td></tr>
-<tr><td>Details</td><td>Clicking a CID lights up its whole chain and opens a card with its CID String (with a copy button), status, parents, settings and child count</td></tr>
+<tr><td>Details</td><td>Clicking a CID (its dot, or a tenant's name) lights up its whole chain and opens a card with its CID String (with a copy button), status, parents, settings and child count</td></tr>
 </tbody>
 </table>
 

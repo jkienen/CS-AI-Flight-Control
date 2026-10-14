@@ -44,7 +44,7 @@ Every run writes to today's folder, `Output/<day>/` below. Running again on the 
 
 2. Read its output:
    - `ERROR` means the input is unusable (wrong header, invalid or duplicate CIDs, a broken `CIDs_Expected.csv`). Nothing is written. Show the errors to the user and fix the cause.
-   - `WARNING` lines do not block, but list every one to the user. They point to things like a `Parent` or `Additional Parent` that is not in the export, a CID that is not `active`, more than one root, `Is Parent?` not matching the CID's actual children, a CID below a tenant (deeper than root → service line → tenant), a name over 38 characters, Incident Aggregation differing from Detection Aggregation, or a `NEW-<n>` CID that now exists in the export.
+   - `WARNING` lines do not block, but list every one to the user. They point to things like a `Parent` or `Additional Parent` that is not in the export, a CID that is not `active`, more than one root, `Is Parent?` not matching the CID's actual children, a CID below a tenant (deeper than root → service line → tenant), a name over `MAX_NAME` characters, Incident Aggregation differing from Detection Aggregation (with `INCIDENT_FOLLOWS_DETECTION` on), or a `NEW-<n>` CID that now exists in the export.
    - `OK` lines say what was written.
    - A `NOTE` says that today's folder has no `CIDs_Expected.csv` yet while an earlier day has one (see 0.2).
 
@@ -96,11 +96,11 @@ The user reviews `Output/<day>/CIDs.html` and describes corrections in their own
 
 | Change | How to express it in `CIDs_Expected.csv` |
 |---|---|
-| Rename a CID | Change `CID Name` (38 characters at most) |
+| Rename a CID | Change `CID Name` (`MAX_NAME` characters at most) |
 | Move a CID to another parent | Change `Parent CID` |
 | Add or remove an additional parent | Set or clear `Additional Parent CID` |
 | Enable or disable Policy Inheritance | Set the column to `true` or `false` |
-| Enable or disable Detection Aggregation | Set both `Detection Aggregation` and `Incident Aggregation` to the same value |
+| Enable or disable Detection Aggregation | Set `Detection Aggregation`, and `Incident Aggregation` to the same value while `INCIDENT_FOLLOWS_DETECTION` is on |
 | Delete a CID | Remove its row (re-parent or remove its children first) |
 | Create a new child CID | Add a row with `CID String` = `NEW-1`, `NEW-2`, ... |
 
@@ -108,7 +108,7 @@ If a correction does not fit this table (for example, combining tenants under a 
 
 ### 1.2 Update the expected structure
 
-1. If today's `CIDs_Expected.csv` does not exist, create it with `--init-expected` (or with `--keep-expected`, when the user chose in 0.2 to go on from an earlier day). It starts as a copy of the current structure, so nothing is pending. If the export has CIDs where Incident Aggregation differs from Detection Aggregation, that same run stops with an `ERROR` for each of them (the expected structure must follow the rule): ask the user which value to keep, set both columns to it, and run again.
+1. If today's `CIDs_Expected.csv` does not exist, create it with `--init-expected` (or with `--keep-expected`, when the user chose in 0.2 to go on from an earlier day). It starts as a copy of the current structure, so nothing is pending. With `INCIDENT_FOLLOWS_DETECTION` on, if the export has CIDs where Incident Aggregation differs from Detection Aggregation, that same run stops with an `ERROR` for each of them (the expected structure must follow the rule): ask the user which value to keep, set both columns to it, and run again.
 2. Edit `Output/<day>/CIDs_Expected.csv`. Use Python's `csv` module (or careful edits that keep the quoting intact), and keep it UTF-8.
 
 Format of `CIDs_Expected.csv`:
@@ -121,7 +121,7 @@ CID String,CID Name,Parent CID,Additional Parent CID,Policy Inheritance,Detectio
 - `Parent CID` and `Additional Parent CID` hold **CID Strings**, not names, so renames never break parent links. Leave `Parent CID` empty only for the root.
 - Flags are `true` or `false`.
 - New CIDs use `NEW-<n>` as their CID String. Other rows can reference them as a parent.
-- The script refuses (`ERROR`) duplicate CIDs or names, CIDs that are not in the export, parents that are not in the file, parent cycles, new or changed names over 38 characters, and rows where Incident Aggregation differs from Detection Aggregation.
+- The script refuses (`ERROR`) duplicate CIDs or names, CIDs that are not in the export, parents that are not in the file, parent cycles, new or changed names over `MAX_NAME` characters (unless it is `0`), and, with `INCIDENT_FOLLOWS_DETECTION` on, rows where Incident Aggregation differs from Detection Aggregation.
 
 ### 1.3 Regenerate and report
 
@@ -133,7 +133,7 @@ CID String,CID Name,Parent CID,Additional Parent CID,Policy Inheritance,Detectio
 
 `Output/<day>/CIDs.html` is an interactive graph: the same page the pyvis library writes (vis-network 9.1.2, loaded from cdnjs, so opening it needs internet), with a side panel added. It is written directly by the script, so pyvis does not need to be installed.
 
-- **Layout:** a hierarchy, left to right: the root, the service lines (direct children of the root), and the tenants. Each service line gets a horizontal band, stacked top to bottom in name order (a numeric prefix such as `01 -`, `02 -` sets the order). Its tenants (by primary parent) sit to its right, in columns of at most 3, side by side; tenants with an additional parent come first (top of the first column), so their dashed links stay short. A service line sits at the vertical middle of its band, and the root at the middle of the service lines. No boxes are drawn.
+- **Layout:** a hierarchy, left to right: the root, the service lines (direct children of the root), and the tenants. Each service line gets a horizontal band, stacked top to bottom in name order (a numeric prefix such as `01 -`, `02 -` sets the order). Its tenants (by primary parent) sit to its right in a single column, one below the other and close together (28 px apart, with smaller dots than the root and the service lines); tenants with an additional parent come first (top of the band), so their dashed links stay short. A service line sits at the vertical middle of its band, and the root at the middle of the service lines. Tenant names sit to the right of their dots; the root and service line names sit below theirs. No boxes are drawn.
 - **Colors:** the root is light gray. Each service line and every CID under it share one color, by name order: the first blue, the second orange, the third yellow, the fourth red (a fifth line onward gets coral, pink, gray). The same CID has the same color in both views.
 - **Links**, one set per parent (dashed for the additional parent):
   - parent → child in **purple** when the child has Policy Inheritance enabled, **gray** when it does not;
@@ -143,17 +143,17 @@ CID String,CID Name,Parent CID,Additional Parent CID,Policy Inheritance,Detectio
 - **Side panel (right):**
   - **View:** two buttons, **Expected** ("after the changes", violet) and **Today** ("current export", blue-gray). The selected one is filled with its color. `Expected` is selected when the page opens; without `CIDs_Expected.csv`, only `Today` exists. Each view shows its own structure as it is: nothing marks what changed or what is pending. The differences are spelled out in `Case_Message.txt`, and you report them to the user in the chat.
   - **Filter:** **Service lines**, multi-select, each with its color dot. A ticked line keeps the line itself and every tenant linked to it, as primary or additional parent; each tenant brings its parents up to the root, both when it has two.
-  - **Details:** clicking a CID replaces the filter with a card: a header with the CID's color dot, its name and what it is (`Root CID`, `Service line`, or `Tenant · <service line>`), then sections for the CID String (with a **Copy** button), status, parents (each with its color dot; the additional one tagged `additional`), settings (Policy Inheritance and Detection Aggregation as Enabled/Disabled chips, in the link colors when enabled) and child count (additional-parent links included). **Back to filters**, or a click on empty space, returns to the filter.
+  - **Details:** clicking a CID (its dot, or a tenant's name) replaces the filter with a card: a header with the CID's color dot, its name and what it is (`Root CID`, `Service line`, or `Tenant · <service line>`), then sections for the CID String (with a **Copy** button), status, parents (each with its color dot; the additional one tagged `additional`), settings (Policy Inheritance and Detection Aggregation as Enabled/Disabled chips, in the link colors when enabled) and child count (additional-parent links included). **Back to filters**, or a click on empty space, returns to the filter.
   - **Source** (bottom of the panel): the CID export time (from `Input/CIDs.csv`) and the generation time.
-- **Highlight:** clicking a CID also lights up its whole chain (children down, parents up to the root, both parents when it has two): white border and glow on the CIDs, chain links thicker and at full color, every other link faded.
+- **Highlight:** clicking a CID also lights up its whole chain (children down, parents up to the root, both parents when it has two): white border and glow on the CIDs, chain links slightly thicker (0.6 px over their own width) and at full color, every other link faded.
 - **Canvas:** the graph, the title `FALCON FLIGHT CONTROL · CID HIERARCHY` on top, a **Tenants** table in the top-left corner (visible tenants per service line, by primary parent, and the total), and the **Links** legend (the link colors) in the bottom-left corner.
-- The view is framed automatically to fit the visible CIDs, again after every filter change and window resize. Nodes can be dragged.
+- The view is framed automatically to fit the visible CIDs under the title (never zoomed in past 100%), again after every filter change and window resize; when a CID would fall under the Tenants table or the Links legend, the view keeps clear of their whole height instead. Nodes can be dragged; a tenant's name follows its dot.
 
 ### What the case message contains
 
 `Output/<day>/Case_Message.txt` is written in English for CrowdStrike support and lists only what differs between Today and Expected:
 
-1. **GENERAL NOTES:** identify CIDs by CID String; Incident Aggregation must always equal Detection Aggregation; names after the rename step are the new names; do the steps in order; do not change anything that is not listed.
+1. **GENERAL NOTES:** identify CIDs by CID String; Incident Aggregation must always equal Detection Aggregation (only with `INCIDENT_FOLLOWS_DETECTION` on); names after the rename step are the new names; do the steps in order; do not change anything that is not listed.
 2. **Steps**, numbered and included only when they have content, in this order:
    1. CREATE CIDs: name, parent, additional parent, settings.
    2. RENAME CIDs: `CID string: "current name" -> "new name"`.

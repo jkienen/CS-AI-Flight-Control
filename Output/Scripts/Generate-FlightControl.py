@@ -78,10 +78,11 @@ DETECTION_COLOR = "#69f0ae"
 LINK_CURVE = 0.12
 
 # Line widths: the Detection Aggregation links are thinner, so they stay in
-# the background; clicking a CID draws its chain at HIGHLIGHT_WIDTH.
+# the background; clicking a CID draws each link of its chain HIGHLIGHT_WIDTH
+# wider than its own width (selected and hovered links get nothing extra).
 LINK_WIDTH = 1
 DETECTION_WIDTH = 0.6
-HIGHLIGHT_WIDTH = 3
+HIGHLIGHT_WIDTH = 0.6
 
 # Every link is drawn at LINK_OPACITY, darker against the black canvas;
 # clicking a CID draws its chain at full color.
@@ -89,17 +90,20 @@ LINK_OPACITY = 0.5
 
 # Layout: a tree, left to right - root, service lines, tenants. Each service
 # line gets a horizontal band, in name order top to bottom (01 on top); its
-# tenants fill the band column by column, at most MAX_ROWS_PER_COLUMN per
-# column (balanced), the columns side by side; tenants with an additional
-# parent come first, so their dashed links stay short. A line sits at the
-# middle of its band, the root at the middle of the lines. COLUMN_GAP is the
-# space between the widest labels of two columns, BAND_GAP the extra space
-# between two bands.
-ROW_HEIGHT = 80
+# tenants are stacked one below the other, ROW_HEIGHT apart, each name
+# LABEL_GAP px to the right of its dot; tenants with an additional parent
+# come first, so their dashed links stay short. A line sits at the middle of
+# its band, the root at the middle of the lines. Root and line names sit
+# below their dots. NODE_SIZE is the dot radius of the root and the lines,
+# TENANT_SIZE of the tenants; COLUMN_GAP is the space between two columns,
+# BAND_GAP the space between the last tenant of a band and the first of the
+# next.
 NODE_SIZE = 16
-MAX_ROWS_PER_COLUMN = 3
+TENANT_SIZE = 10
+ROW_HEIGHT = 28
+LABEL_GAP = 8
 COLUMN_GAP = 80
-BAND_GAP = 100
+BAND_GAP = 70
 
 # The two views, as (button label, hint, color): the selected view's button
 # is filled with its color.
@@ -543,11 +547,14 @@ def graph_view(view, recs, info, color_of):
                         for k, v in rows))
 
     nodes.append({
-      "id": f"{view}/{c}", "label": r["name"], "color": color, "shape": "dot", "size": NODE_SIZE,
-      "x": {"root": 0, "line": 1, "tenant": 2}[layer] * 400, "y": row * ROW_HEIGHT, "physics": False, "row": row,
+      "id": f"{view}/{c}", "name": r["name"], "color": color, "shape": "dot",
+      "size": TENANT_SIZE if layer == "tenant" else NODE_SIZE,
+      "x": 0, "y": 0, "physics": False, "row": row,
       "opacity": opacity, "font": {"color": f"rgba(255, 255, 255, {opacity})" if opacity < 1 else "#ffffff"},
       "layer": layer, "view": view, "line": line, "lines": lines, "extra": r["addl"] in recs,
       "detail": detail})
+    # the page draws tenant names itself, to the right of their dots
+    if layer != "tenant": nodes[-1]["label"] = r["name"]
 
     # links to each parent: parent -> child (policy), child -> parent (detection)
     me = f"{view}/{c}"
@@ -726,7 +733,8 @@ SIDE_PANEL = """
 
 # Pyvis has no filter, detail panel or tree layout built in - this script runs
 # after the network exists: view switch, Service lines filter, click
-# highlight and details, the tree layout and the framing of the view.
+# highlight and details, the tree layout with the tenant names, and the
+# framing of the view.
 FILTER_SCRIPT = """
 <script>
 (function () {
@@ -840,7 +848,7 @@ FILTER_SCRIPT = """
     var faded = {color: 'rgba(85,85,85,0.25)', highlight: 'rgba(85,85,85,0.25)', hover: 'rgba(85,85,85,0.25)', inherit: false};
     edges.update(edges.get().map(function (e) {
       var inChain = on.has(e.from) && on.has(e.to);
-      return {id: e.id, color: inChain ? e.full : faded, width: inChain ? HIGHLIGHT.width : e.baseWidth};
+      return {id: e.id, color: inChain ? e.full : faded, width: inChain ? e.baseWidth + HIGHLIGHT.width : e.baseWidth};
     }));
   }
 
@@ -899,44 +907,82 @@ FILTER_SCRIPT = """
     return measure.measureText(text).width;
   }
 
-  // how far a node reaches to each side: half its label (measured once per
-  // node) or its dot, whichever is wider
-  var halfWidths = {};
+  // each node's name width (measured once per node)
+  var nameWidths = {};
+  function nameWidth(id) {
+    if (!(id in nameWidths)) nameWidths[id] = textWidth(nodes.get(id).name, NODE_FONT);
+    return nameWidths[id];
+  }
+
+  // how far a root or line node reaches to each side: half its label or its
+  // dot, whichever is wider
   function halfWidth(id) {
-    if (!(id in halfWidths)) {
-      halfWidths[id] = Math.max(LAYOUT.nodeSize, textWidth(nodes.get(id).label, NODE_FONT) / 2);
-    }
-    return halfWidths[id];
+    return Math.max(LAYOUT.nodeSize, nameWidth(id) / 2);
   }
 
   function widest(ids) {
     return ids.reduce(function (most, id) { return Math.max(most, halfWidth(id)); }, LAYOUT.nodeSize);
   }
 
+  // a tenant's name sits to the right of its dot, LAYOUT.labelGap px away,
+  // vertically centered on it: where it starts and ends
+  function nameBox(n, p) {
+    var start = p.x + n.size + LAYOUT.labelGap;
+    return {left: start, right: start + nameWidth(n.id), top: p.y - NODE_LABEL / 2, bottom: p.y + NODE_LABEL / 2};
+  }
+
+  function shownTenants() {
+    var shown = nodes.get({filter: function (n) { return !n.hidden && n.layer === 'tenant'; }});
+    var positions = network.getPositions(shown.map(function (n) { return n.id; }));
+    return shown.map(function (n) { return {node: n, p: positions[n.id], box: nameBox(n, positions[n.id])}; });
+  }
+
+  // tenant names, drawn over the graph in each node's font color
+  network.on('afterDrawing', function (ctx) {
+    ctx.save();
+    ctx.font = NODE_FONT;
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'middle';
+    shownTenants().forEach(function (t) {
+      ctx.fillStyle = t.node.font.color;
+      ctx.fillText(t.node.name, t.box.left, t.p.y);
+    });
+    ctx.restore();
+  });
+
+  // the tenant whose name is under a canvas point, if any
+  function nameAt(point) {
+    var hit = null;
+    shownTenants().forEach(function (t) {
+      var b = t.box;
+      if (point.x >= b.left && point.x <= b.right && point.y >= b.top && point.y <= b.bottom) hit = t.node.id;
+    });
+    return hit;
+  }
+
   // the tree, from the visible CIDs only (a filter leaves no gaps): root,
-  // service lines and tenants in three columns, far enough apart for their
-  // widest labels. Each service line gets a band, in LINES order (name
-  // order) top to bottom; its tenants (by primary parent) fill the band
-  // column by column, at most LAYOUT.maxRows per column, balanced. A line
-  // sits at the middle of its band, the root at the middle of the lines.
+  // service lines and tenants in three columns, far enough apart for the
+  // widest root and line labels. Each service line gets a band, in LINES
+  // order (name order) top to bottom; its tenants (by primary parent) are
+  // stacked one below the other, LAYOUT.rowHeight apart. A line sits at the
+  // middle of its band, the root at the middle of the lines.
   function layoutTree(visible) {
     var byLayer = {root: [], line: [], tenant: []};
     visible.forEach(function (id) { byLayer[nodes.get(id).layer].push(id); });
     Object.keys(byLayer).forEach(function (layer) {
       byLayer[layer].sort(function (a, b) { return nodes.get(a).row - nodes.get(b).row; });
     });
-    var rootHalf = widest(byLayer.root), lineHalf = widest(byLayer.line), tenantHalf = widest(byLayer.tenant);
+    var rootHalf = widest(byLayer.root), lineHalf = widest(byLayer.line);
     var lineX = rootHalf + lineHalf + LAYOUT.columnGap;
-    var tenantX = lineX + lineHalf + tenantHalf + LAYOUT.columnGap;
-    var step = 2 * tenantHalf + LAYOUT.columnGap / 2;
+    var tenantX = lineX + lineHalf + LAYOUT.columnGap;
     var lineOf = {}, bands = {};
     byLayer.line.forEach(function (id) { lineOf[nodes.get(id).line] = id; });
     byLayer.tenant.forEach(function (id) {
       var key = nodes.get(id).line;
       (bands[key] = bands[key] || []).push(id);
     });
-    // tenants with an additional parent first (top of the first column, the
-    // closest to the other bands), each group in name order
+    // tenants with an additional parent first (top of the band), each group
+    // in name order
     Object.keys(bands).forEach(function (key) {
       bands[key].sort(function (a, b) {
         return (nodes.get(b).extra - nodes.get(a).extra) || (nodes.get(a).row - nodes.get(b).row);
@@ -946,56 +992,77 @@ FILTER_SCRIPT = """
     LINES.forEach(function (l) {
       var tenants = bands[l[0]] || [], lineId = lineOf[l[0]];
       if (!lineId && tenants.length === 0) return;
-      var columns = Math.max(1, Math.ceil(tenants.length / LAYOUT.maxRows));
-      var perColumn = Math.max(1, Math.ceil(tenants.length / columns));
       tenants.forEach(function (id, i) {
-        updates.push({id: id, x: tenantX + Math.floor(i / perColumn) * step, y: y + (i % perColumn) * LAYOUT.rowHeight});
+        updates.push({id: id, x: tenantX, y: y + i * LAYOUT.rowHeight});
       });
-      var height = tenants.length ? (perColumn - 1) * LAYOUT.rowHeight : 0;
+      var height = tenants.length ? (tenants.length - 1) * LAYOUT.rowHeight : 0;
       if (lineId) {
         updates.push({id: lineId, x: lineX, y: y + height / 2});
         centers.push(y + height / 2);
       }
-      y += height + LAYOUT.rowHeight + LAYOUT.bandGap;
+      y += height + LAYOUT.bandGap;
     });
     var rootY = centers.length ? (Math.min.apply(null, centers) + Math.max.apply(null, centers)) / 2 : 0;
-    byLayer.root.forEach(function (id, i) { updates.push({id: id, x: 0, y: rootY + i * LAYOUT.rowHeight}); });
+    byLayer.root.forEach(function (id, i) { updates.push({id: id, x: 0, y: rootY + i * LAYOUT.bandGap}); });
     nodes.update(updates);
   }
 
-  // the area each visible CID takes, dot and label, from its live position
+  // the area each visible CID takes, dot and name, from its live position
   // (a dragged node is followed)
   function frameRects() {
     var shown = nodes.get({filter: function (n) { return !n.hidden; }});
     var positions = network.getPositions(shown.map(function (n) { return n.id; }));
     return shown.map(function (n) {
-      var p = positions[n.id];
-      return {left: p.x - halfWidth(n.id), right: p.x + halfWidth(n.id),
-              top: p.y - LAYOUT.nodeSize, bottom: p.y + LAYOUT.nodeSize + NODE_LABEL};
+      var p = positions[n.id], r = n.size;
+      if (n.layer === 'tenant') {
+        var box = nameBox(n, p);
+        return {left: p.x - r, right: box.right, top: Math.min(p.y - r, box.top), bottom: Math.max(p.y + r, box.bottom)};
+      }
+      return {left: p.x - halfWidth(n.id), right: p.x + halfWidth(n.id), top: p.y - r, bottom: p.y + r + NODE_LABEL};
     });
   }
 
-  // frames every visible CID inside the part of the canvas left free by the
-  // overlays (FIT_MARGIN px from its edges); never zooms in past 1
+  // the view that fits the bounds between the given top and bottom margins
+  // (FIT_MARGIN px from the sides); never zooms in past 1
   var FIT_MARGIN = 24;
+  function framing(b, canvas, marginTop, marginBottom) {
+    var scale = Math.min(1, (canvas.width - 2 * FIT_MARGIN) / (b.right - b.left),
+                         (canvas.height - marginTop - marginBottom) / (b.bottom - b.top));
+    return {x: (b.left + b.right) / 2, y: (b.top + b.bottom) / 2 - (marginTop - marginBottom) / 2 / scale, scale: scale};
+  }
+
+  // whether a CID would fall under one of the overlays in that view
+  function covered(view, rects, canvas, overlays) {
+    var cx = canvas.left + canvas.width / 2, cy = canvas.top + canvas.height / 2;
+    return rects.some(function (r) {
+      var left = cx + (r.left - view.x) * view.scale, right = cx + (r.right - view.x) * view.scale;
+      var top = cy + (r.top - view.y) * view.scale, bottom = cy + (r.bottom - view.y) * view.scale;
+      return overlays.some(function (o) { return left < o.right && right > o.left && top < o.bottom && bottom > o.top; });
+    });
+  }
+
+  // frames every visible CID under the title, as large as fits; when a CID
+  // would then fall under the Tenants table or the Links legend, it keeps
+  // clear of their whole height instead
   function fitBoxes() {
     var rects = frameRects();
     if (rects.length === 0) return;
-    var left = Math.min.apply(null, rects.map(function (r) { return r.left; }));
-    var right = Math.max.apply(null, rects.map(function (r) { return r.right; }));
-    var top = Math.min.apply(null, rects.map(function (r) { return r.top; }));
-    var bottom = Math.max.apply(null, rects.map(function (r) { return r.bottom; }));
+    var bounds = {left: Math.min.apply(null, rects.map(function (r) { return r.left; })),
+                  right: Math.max.apply(null, rects.map(function (r) { return r.right; })),
+                  top: Math.min.apply(null, rects.map(function (r) { return r.top; })),
+                  bottom: Math.max.apply(null, rects.map(function (r) { return r.bottom; }))};
     var canvas = document.querySelector('#mynetwork canvas').getBoundingClientRect();
-    var freeTop = Math.max.apply(null, [canvas.top].concat(['counts-box', 'graph-title'].map(function (id) {
-      return document.getElementById(id).getBoundingClientRect().bottom;
-    })));
-    var freeBottom = Math.min(canvas.bottom, window.innerHeight, document.getElementById('legend').getBoundingClientRect().top);
-    var marginTop = freeTop - canvas.top + FIT_MARGIN;
-    var marginBottom = canvas.bottom - freeBottom + FIT_MARGIN;
-    var scale = Math.min(1, (canvas.width - 2 * FIT_MARGIN) / (right - left),
-                         (canvas.height - marginTop - marginBottom) / (bottom - top));
-    network.moveTo({position: {x: (left + right) / 2, y: (top + bottom) / 2 - (marginTop - marginBottom) / 2 / scale},
-                    scale: scale, animation: {duration: 300, easingFunction: 'easeInOutQuad'}});
+    var countsBox = document.getElementById('counts-box').getBoundingClientRect();
+    var legend = document.getElementById('legend').getBoundingClientRect();
+    var titleBottom = document.getElementById('graph-title').getBoundingClientRect().bottom;
+    var freeBottom = Math.min(canvas.bottom, window.innerHeight);
+    var view = framing(bounds, canvas, titleBottom - canvas.top + FIT_MARGIN, canvas.bottom - freeBottom + FIT_MARGIN);
+    if (covered(view, rects, canvas, [countsBox, legend])) {
+      view = framing(bounds, canvas, Math.max(titleBottom, countsBox.bottom) - canvas.top + FIT_MARGIN,
+                     canvas.bottom - Math.min(freeBottom, legend.top) + FIT_MARGIN);
+    }
+    network.moveTo({position: {x: view.x, y: view.y}, scale: view.scale,
+                    animation: {duration: 300, easingFunction: 'easeInOutQuad'}});
   }
 
   function applyFilter() {
@@ -1025,10 +1092,13 @@ FILTER_SCRIPT = """
   network.on('resize', function () { setTimeout(fitBoxes, 0); });
   window.addEventListener('resize', function () { setTimeout(fitBoxes, 0); });
 
+  // a click on a tenant's name selects it, like a click on its dot
   network.on('click', function (params) {
-    if (params.nodes.length > 0) {
-      highlight(params.nodes[0]);
-      showDetail(params.nodes[0]);
+    var id = params.nodes.length > 0 ? params.nodes[0] : nameAt(params.pointer.canvas);
+    if (id) {
+      network.selectNodes([id]);
+      highlight(id);
+      showDetail(id);
     } else {
       showFilters();
     }
@@ -1113,9 +1183,9 @@ def build_page(today, t_info, expected, x_info):
                 .replace("%%POLICY%%", POLICY_COLOR).replace("%%DETECTION%%", DETECTION_COLOR)
                 .replace("%%LINK%%", LINK_COLOR).replace("%%LINK_OPACITY%%", str(LINK_OPACITY)))
 
-  layout = {"rowHeight": ROW_HEIGHT, "maxRows": MAX_ROWS_PER_COLUMN, "nodeSize": NODE_SIZE,
-            "columnGap": COLUMN_GAP, "bandGap": BAND_GAP}
-  options = {"physics": {"enabled": False}, "edges": {"arrows": {"to": {"scaleFactor": 0.5}}}}
+  layout = {"nodeSize": NODE_SIZE, "rowHeight": ROW_HEIGHT, "labelGap": LABEL_GAP, "columnGap": COLUMN_GAP,
+            "bandGap": BAND_GAP}
+  options = {"physics": {"enabled": False}, "edges": {"arrows": {"to": {"scaleFactor": 0.5}}, "selectionWidth": 0, "hoverWidth": 0}}
   highlight = {"color": HIGHLIGHT_COLOR, "chain": HIGHLIGHT_CHAIN, "width": HIGHLIGHT_WIDTH}
   return (PAGE.replace("%%TAB_TITLE%%", e(f"{TAB_TITLE} - {company}" if company else TAB_TITLE))
           .replace("%%FAVICON%%", FAVICON)
