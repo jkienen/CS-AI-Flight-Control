@@ -1,4 +1,4 @@
-# Crowdstrike AI Flight Control — Review
+# CrowdStrike AI Flight Control — Review
 
 This file is the skill for reviewing and correcting the CrowdStrike Falcon CID (tenant) hierarchy. It covers the whole loop: load the current export, show the structure, collect the user's corrections, and produce the step-by-step text that CrowdStrike support uses to apply them.
 
@@ -22,7 +22,7 @@ Output/Example/                           fictional sample review (expected stru
 Output/Scripts/Generate-FlightControl.py  the generator: reads the CSVs, writes CIDs.html and Case_Message.txt
 Output/<day>/                             one folder per day, named YYYY-MM-DD (for example Output/2026-10-14/):
   CIDs_Expected.csv                       the expected (target) structure; the source of truth for corrections
-  CIDs.html                               interactive graph of the structure: Expected and Today views
+  CIDs.html                               interactive page of the structure (graph and table): Expected and Today views
   Case_Message.txt                        step-by-step text for CrowdStrike support, from Today to Expected
 ```
 
@@ -48,7 +48,7 @@ Every run writes to today's folder, `Output/<day>/` below. Running again on the 
    - `OK` lines say what was written.
    - A `NOTE` says that today's folder has no `CIDs_Expected.csv` yet while an earlier day has one (see 0.2).
 
-The script creates today's folder if it does not exist. It uses only the Python standard library, so there is nothing to install (the HTML loads vis-network from a CDN when opened).
+The script creates today's folder if it does not exist. It uses only the Python standard library, so there is nothing to install, and the HTML it writes is self-contained: it loads nothing from the internet, so it also opens offline.
 
 The script does not change with the data: every correction goes into `Output/<day>/CIDs_Expected.csv`. Change the script only to change how the HTML or the case text looks or behaves, keep its code organization (the `Part N` sections, 2-space indentation), and update [What the HTML shows](#what-the-html-shows) or [What the case message contains](#what-the-case-message-contains) to match.
 
@@ -131,23 +131,23 @@ CID String,CID Name,Parent CID,Additional Parent CID,Policy Inheritance,Detectio
 
 ### What the HTML shows
 
-`Output/<day>/CIDs.html` is an interactive graph: the same page the pyvis library writes (vis-network 9.1.2, loaded from cdnjs, so opening it needs internet), with a side panel added. It is written directly by the script, so pyvis does not need to be installed.
+`Output/<day>/CIDs.html` is one self-contained page laid out like the CID overview of the Falcon console: dark by default, with a light theme. The script writes the data into the page and the page draws everything itself (an SVG with its own pan and zoom), so it needs no library and no internet connection.
 
-- **Layout:** a hierarchy, left to right: the root, the service lines (direct children of the root), and the tenants. Each service line gets a horizontal band, stacked top to bottom in name order (a numeric prefix such as `01 -`, `02 -` sets the order). Its tenants (by primary parent) sit to its right in a single column, one below the other and close together (28 px apart, with smaller dots than the root and the service lines); tenants with an additional parent come first (top of the band), so their dashed links stay short. A service line sits at the vertical middle of its band, and the root at the middle of the service lines. Tenant names sit to the right of their dots; the root and service line names sit below theirs. No boxes are drawn.
-- **Colors:** the root is light gray. Each service line and every CID under it share one color, by name order: the first blue, the second orange, the third yellow, the fourth red (a fifth line onward gets coral, pink, gray). The same CID has the same color in both views.
-- **Links**, one set per parent (dashed for the additional parent):
-  - parent → child in **purple** when the child has Policy Inheritance enabled, **gray** when it does not;
-  - child → parent in **green**, thinner than the other links, when the child has Detection Aggregation enabled (none when disabled).
-  - The two links of a pair curve to opposite sides, so both stay visible. All links are drawn at 50% opacity, darker against the black canvas. The **Links** legend in the bottom-left corner of the canvas explains them.
-- **Faded:** CIDs that are not `active` are drawn at 40% opacity.
-- **Side panel (right):**
-  - **View:** two buttons, **Expected** ("after the changes", violet) and **Today** ("current export", blue-gray). The selected one is filled with its color. `Expected` is selected when the page opens; without `CIDs_Expected.csv`, only `Today` exists. Each view shows its own structure as it is: nothing marks what changed or what is pending. The differences are spelled out in `Case_Message.txt`, and you report them to the user in the chat.
-  - **Filter:** **Service lines**, multi-select, each with its color dot. A ticked line keeps the line itself and every tenant linked to it, as primary or additional parent; each tenant brings its parents up to the root, both when it has two.
-  - **Details:** clicking a CID (its dot, or a tenant's name) replaces the filter with a card: a header with the CID's color dot, its name and what it is (`Root CID`, `Service line`, or `Tenant · <service line>`), then sections for the CID String (with a **Copy** button), status, parents (each with its color dot; the additional one tagged `additional`), settings (Policy Inheritance and Detection Aggregation as Enabled/Disabled chips, in the link colors when enabled) and child count (additional-parent links included). **Back to filters**, or a click on empty space, returns to the filter.
-  - **Source** (bottom of the panel): the CID export time (from `Input/CIDs.csv`) and the generation time.
-- **Highlight:** clicking a CID also lights up its whole chain (children down, parents up to the root, both parents when it has two): white border and glow on the CIDs, chain links slightly thicker (0.6 px over their own width) and at full color, every other link faded.
-- **Canvas:** the graph, the title `FALCON FLIGHT CONTROL · CID HIERARCHY` on top, a **Tenants** table in the top-left corner (visible tenants per service line, by primary parent, and the total), and the **Links** legend (the link colors) in the bottom-left corner.
-- The view is framed automatically to fit the visible CIDs under the title (never zoomed in past 100%), again after every filter change and window resize; when a CID would fall under the Tenants table or the Links legend, the view keeps clear of their whole height instead. Nodes can be dragged; a tenant's name follows its dot.
+The page reads three parts of the naming pattern from the CID names, and works without them: the **number**, the text before ` - ` (`01` in `01 - Example Corp | Managed`), shown with each service line (lines are sorted by name, so a leading number also sets their order); the **short name**, the text after the last `|` (`Managed`), shown for the root and the service lines; and the **tag**, up to 6 characters before ` | ` at the start of a tenant's name (`MGD` in `MGD | Bravo Retail`), drawn in gray.
+
+- **Header:** the page name and the company (from the root's name: the text between its number and the `|`, such as `Example Corp` in `0 - Example Corp | Global Parent`), a **Search** box (CID name or CID String; `/` focuses it, Enter jumps to the first match, Esc clears it), the view switch and the light/dark button (the browser remembers the choice).
+  - **View:** **Expected** ("after the changes", violet) and **Today** ("current export", blue-gray); the selected one is filled with its color. `Expected` is selected when the page opens; without `CIDs_Expected.csv`, only `Today` exists. Each view shows its own structure as it is: nothing marks what changed or what is pending. The differences are spelled out in `Case_Message.txt`, and you report them to the user in the chat.
+- **Tabs:** **Graph** and **Table**, as in the console. Both follow the view, the search, the service-line filter and the clicked CID.
+- **Graph layout:** the root on top, centered, with its short name to the right of its glyph. Below it, one card per service line (a direct child of the root), left to right in name order (so the numbers `01`, `02`, ... set it), joined to the root through a bus. A card's header holds the service line: its short name, its number and its child count (additional children included, as Falcon counts them, with how many are additional). Its rows hold the line's tenants by primary parent, one below the other, the tenants with an additional parent first; a CID below a tenant is indented under it. Each tenant's link leaves the line's trunk on the left of the card. Tenant names show their tag in gray.
+- **Marks, as in the Falcon legend:** parent CIDs (the root and the service lines) are an orange cluster of dots, tenants are cyan dots. A CID that is not `active` is a hollow gray dot with a gray name. Two badge columns at the right edge of each card hold the settings: **P** (purple) when Policy Inheritance is enabled, **D** (yellow) when Detection Aggregation is enabled; a disabled setting leaves its slot empty. The link to a CID with Policy Inheritance enabled is purple.
+- **Additional parents:** the tenant's row gets a `+ <parent>` chip, and a dashed link runs from a port on top of the parent's card, along a channel under the bus and down the gutter left of the tenant's card, into the tenant's row.
+- **Legend** (top-left, next to the toolbar; it starts hidden in windows narrower than 1500 px): counts of what is visible: all CIDs, parent CIDs, tenant CIDs, inactive CIDs (only when there are any), parent links, CIDs with Policy Inheritance enabled, CIDs with Detection Aggregation enabled, additional parents.
+  - **Parent CIDs** expands into the service lines, each with its tenant count (by primary parent) and an eye that hides or shows it. Clicking a line's name shows only that line (click again to undo); **Show all service lines** resets. A tenant shows when its line or its additional parent's line is shown, and brings its parents up to the root; a line shown only for that keeps just its header, faded.
+  - The eyes on Policy Inheritance, Detection Aggregation and Additional parent hide or show their badges and purple links, or the chips and dashed links.
+- **Toolbar:** show/hide the legend, fit to screen, zoom in, zoom out. The mouse wheel zooms at the pointer; dragging pans. The view is framed to fit the visible CIDs (never past 115%) when the page opens and after every view or filter change and window resize, keeping clear of the legend.
+- **Clicking a CID** (its dot, its name or its card header) lights up its whole chain (parents up to the root, both when it has two, and children down): the chain's links turn white (purple where Policy Inheritance is enabled) and everything else fades. It also opens the **details drawer** on the right: the name and what the CID is (`Root CID`, `Service line`, or `Tenant · <service line>`), the CID String with a **Copy** button (`To be created` for a `NEW-<n>`), status, endpoints (from the export) and child count, the parents (tagged Primary or Additional), the three settings (Policy Inheritance, Detection Aggregation, Incident Aggregation) and the children. Parents and children are clickable. The view moves just enough for the drawer not to cover the CID. Esc, the close button or a click on empty space closes it.
+- **Table:** one row per visible CID in tree order, names indented by depth, until a column header is clicked to sort by it (click again to reverse, a third time to go back to tree order). Columns: CID name, type, service line, additional parent, status, endpoints, Policy Inheritance, Detection Aggregation, child CIDs and CID String (with a copy button). The bar above it repeats the service lines as toggle chips and counts the rows. Clicking a row opens the details drawer, and the table narrows to make room for it.
+- **Source** (bottom-right of the graph): the CID export time (from `Input/CIDs.csv`) and the generation time.
 
 ### What the case message contains
 

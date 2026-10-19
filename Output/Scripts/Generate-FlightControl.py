@@ -54,70 +54,67 @@ NEW_RE = re.compile(r"NEW-\d+")
 MAX_NAME = 38
 INCIDENT_FOLLOWS_DETECTION = True
 
-# Shown over the canvas, and in the browser tab. The tab icon is a data URI,
-# fully local (no external file/network fetch).
-TITLE = "FALCON FLIGHT CONTROL · CID HIERARCHY"
+# Shown in the browser tab and in the page header. The tab icon is a data URI
+# of the parent glyph (the dot cluster of the Falcon console), fully local.
 TAB_TITLE = "Falcon Flight Control - CID Hierarchy"
-FAVICON = ("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'>"
-           "<text x='50' y='75' font-size='80' text-anchor='middle'>&#x1F6E1;</text></svg>")
+APP_NAME = "Flight Control"
+PAGE_NAME = "CID hierarchy"
+GLYPH = ('<circle cx="0" cy="0" r="3.3"/><circle cx="7.2" cy="0" r="3.3"/><circle cx="3.6" cy="6.2" r="3.3"/>'
+         '<circle cx="-3.6" cy="6.2" r="3.3"/><circle cx="-7.2" cy="0" r="3.3"/><circle cx="-3.6" cy="-6.2" r="3.3"/>'
+         '<circle cx="3.6" cy="-6.2" r="3.3"/>')
+FAVICON = ("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='-12 -12 24 24' fill='%23f4895f'>"
+           + GLYPH.replace('"', "'") + "</svg>")
 
-# The root is drawn in ROOT_COLOR; each service line (a direct child of the
-# root) and every CID under it take one LINE_COLORS entry, in name order:
-# the first line blue, the second orange, the third yellow, the fourth red.
-ROOT_COLOR = "#e0e0e0"
-LINE_COLORS = ["#4fc3f7", "#ff9800", "#ffd54f", "#ef5350", "#ff7f50", "#f06292", "#90a4ae"]
-
-# Links between a CID and each of its parents (dashed for the additional
-# parent): parent -> child in POLICY_COLOR when the child has Policy
-# Inheritance enabled, LINK_COLOR otherwise; plus child -> parent in
-# DETECTION_COLOR when it has Detection Aggregation enabled. Both curve by
-# LINK_CURVE, to opposite sides, so a pair never overlaps.
-LINK_COLOR = "#555555"
-POLICY_COLOR = "#b388ff"
-DETECTION_COLOR = "#69f0ae"
-LINK_CURVE = 0.12
-
-# Line widths: the Detection Aggregation links are thinner, so they stay in
-# the background; clicking a CID draws each link of its chain HIGHLIGHT_WIDTH
-# wider than its own width (selected and hovered links get nothing extra).
-LINK_WIDTH = 1
-DETECTION_WIDTH = 0.6
-HIGHLIGHT_WIDTH = 0.6
-
-# Every link is drawn at LINK_OPACITY, darker against the black canvas;
-# clicking a CID draws its chain at full color.
-LINK_OPACITY = 0.5
-
-# Layout: a tree, left to right - root, service lines, tenants. Each service
-# line gets a horizontal band, in name order top to bottom (01 on top); its
-# tenants are stacked one below the other, ROW_HEIGHT apart, each name
-# LABEL_GAP px to the right of its dot; tenants with an additional parent
-# come first, so their dashed links stay short. A line sits at the middle of
-# its band, the root at the middle of the lines. Root and line names sit
-# below their dots. NODE_SIZE is the dot radius of the root and the lines,
-# TENANT_SIZE of the tenants; COLUMN_GAP is the space between two columns,
-# BAND_GAP the space between the last tenant of a band and the first of the
-# next.
-NODE_SIZE = 16
-TENANT_SIZE = 10
-ROW_HEIGHT = 28
-LABEL_GAP = 8
-COLUMN_GAP = 80
-BAND_GAP = 70
+# The page colors, as CSS custom properties: dark (the default, as in the
+# Falcon console) and light (the sun/moon button in the header switches
+# them; the browser remembers the choice). As in the Falcon legend, parent
+# CIDs (the root and the service lines) are drawn in "parent", tenants in
+# "cid", Policy Inheritance in "policy" and Detection Aggregation in
+# "detect". Links are "link" (dimmed: "link-dim"), additional parents "addl",
+# the chain of the clicked CID "hi".
+THEMES = {
+  "dark": {
+    "bg": "#1c1c20", "bar": "#1c1c20", "canvas": "#27272c", "card": "#2e2e34", "card-border": "#3b3b43",
+    "panel": "#2f2f35", "panel-2": "#2a2a30", "field": "#232328", "border": "#3e3e46", "border-soft": "#35353c",
+    "text": "#ececef", "muted": "#a5a5af", "faint": "#72727c", "hover": "rgba(255, 255, 255, 0.06)",
+    "hover-strong": "rgba(255, 255, 255, 0.11)", "sel-row": "rgba(107, 138, 253, 0.18)",
+    "accent": "#6b8afd", "accent-text": "#8fa6ff", "parent": "#f4895f", "cid": "#4fd6f3",
+    "policy": "#b47cf5", "policy-text": "#c9a2f8", "detect": "#f3cd3c", "detect-text": "#f3cd3c",
+    "on-pol": "#1b1b1f", "on-det": "#1b1b1f", "link": "#6c6c76", "link-dim": "#38383f", "addl": "#8a8a94",
+    "hi": "#ffffff", "ok": "#4ade80", "warn": "#f5a524", "shadow": "0 10px 30px rgba(0, 0, 0, 0.35)"},
+  "light": {
+    "bg": "#ffffff", "bar": "#ffffff", "canvas": "#f1f2f4", "card": "#ffffff", "card-border": "#dfe0e5",
+    "panel": "#ffffff", "panel-2": "#f6f7f9", "field": "#f4f5f7", "border": "#d9dbe0", "border-soft": "#e8e9ed",
+    "text": "#1d1e23", "muted": "#5b5d68", "faint": "#9093a0", "hover": "rgba(0, 0, 0, 0.045)",
+    "hover-strong": "rgba(0, 0, 0, 0.08)", "sel-row": "rgba(61, 99, 240, 0.12)",
+    "accent": "#3d63f0", "accent-text": "#2f54de", "parent": "#e5713f", "cid": "#0ea5c9",
+    "policy": "#8b4fe0", "policy-text": "#7a3fd1", "detect": "#e9b500", "detect-text": "#8a6a00",
+    "on-pol": "#ffffff", "on-det": "#1d1e23", "link": "#a3a6b0", "link-dim": "#e3e4e8", "addl": "#9a9ca6",
+    "hi": "#1d1e23", "ok": "#16a34a", "warn": "#d97706", "shadow": "0 8px 24px rgba(20, 20, 40, 0.12)"}}
 
 # The two views, as (button label, hint, color): the selected view's button
 # is filled with its color.
 VIEW_STYLE = {"expected": ("Expected", "after the changes", "#7c4dff"),
               "today": ("Today", "current export", "#546e7a")}
 
-# CIDs that are not active are drawn faded, dot and label.
-INACTIVE_OPACITY = 0.40
-
-# Clicking a CID lights it up with its whole chain (parents up to the root,
-# children down), border and glow in HIGHLIGHT_COLOR; the links of the chain
-# keep their colors, thicker, and every other link fades.
-HIGHLIGHT_COLOR = "#ffffff"
-HIGHLIGHT_CHAIN = True
+# Graph layout, in px at 100% zoom: the root on top, centered, with its name
+# to the right of its glyph; below it, one card per service line, in name
+# order left to right, joined to the root through a bus (busY). A card has
+# a header (headH: the line's glyph, name and child count) and one row per
+# tenant (rowH), the tenants of the line by primary parent, tenants with an
+# additional parent first, so their dashed links stay short. A tenant's
+# link leaves the line's trunk (trunkInset from the card's left edge) and
+# reaches its dot stub px to the right; a CID below a tenant is indented by
+# indent px. The P (Policy Inheritance) and D (Detection Aggregation)
+# badges sit in two columns at the right edge of each card. iconR is the
+# radius of the parent glyph (rootScale times larger for the root).
+# The view is framed to fit at most maxFit (zoom limits: minScale..maxScale).
+LAYOUT = {
+  "font": '"Segoe UI", system-ui, -apple-system, Roboto, "Helvetica Neue", Arial, sans-serif',
+  "busY": 46, "cardGap": 26, "colGap": 34, "headH": 56, "rowH": 26, "rowPad": 8,
+  "trunkInset": 22, "stub": 22, "indent": 18, "dotR": 6, "nameGap": 9, "padX": 12, "iconR": 11, "rootScale": 1.3,
+  "badgeW": 18, "badgeH": 16, "badgeGap": 18, "badgeSpace": 4, "chipGap": 8,
+  "minScale": 0.25, "maxScale": 3, "maxFit": 1.15}
 
 # Problems found while loading: errors stop the run before anything is
 # written, warnings are printed at the end.
@@ -477,29 +474,16 @@ def case_message(order, D, today, expected, x_info):
 
 
 
-#################################### Part 5: Graph Construction ->
+#################################### Part 5: Graph Data ->
 
 e = html.escape
 
-def short(name):
-  """Text after the last '|': '01 - Example Corp | Managed' -> 'Managed'."""
-  return name.rsplit("|", 1)[-1].strip()
-
-def line_text(name):
-  """Service line as listed in the filter: '01 - Example Corp | Managed' -> '01 - Managed'."""
-  prefix = name.split(" - ", 1)[0] if " - " in name else ""
-  return f"{prefix} - {short(name)}" if prefix else short(name)
-
-def rgba(color, alpha):
-  """'#69f0ae', 0.5 -> 'rgba(105, 240, 174, 0.5)'."""
-  return f"rgba({int(color[1:3], 16)}, {int(color[3:5], 16)}, {int(color[5:7], 16)}, {alpha})"
-
-def graph_view(view, recs, info, color_of):
-  """Nodes and edges of one view (expected or today). Node ids are
-  '<view>/<cid>', so both views live in the same graph; the side panel shows
-  one at a time. Each node carries the HTML of its detail card."""
+def view_data(recs, info):
+  """One view (expected or today) for the page script: its CIDs in tree
+  order, each with what the graph, the table and the details card show.
+  'line' is the service line a CID sits under by primary parent (itself for
+  a service line, empty for the root)."""
   order, kids, roots = info
-  depth = dict(order)
   root_set = set(roots)
 
   def line_of(c):
@@ -507,696 +491,1024 @@ def graph_view(view, recs, info, color_of):
       c = recs[c]["parent"]
     return c
 
-  def child_count(c):
-    return len(kids.get(c, [])) + sum(1 for r in recs.values() if r["addl"] == c)
-
-  nodes, edges = [], []
-  for row, (c, d) in enumerate(order):
+  cids = []
+  for c, d in order:
     r = recs[c]
-    layer = "root" if d == 0 else "line" if d == 1 else "tenant"
-    line = line_of(c) if d else ""
-    lines = sorted({line} | ({line_of(r["addl"])} if r["addl"] in recs and depth.get(r["addl"], 0) >= 1 else set())) if d else []
-    color = ROOT_COLOR if d == 0 else color_of.get(line, ROOT_COLOR)
-    opacity = 1 if r["status"] in ("active", "new") else INACTIVE_OPACITY
+    cids.append({
+      "id": c, "name": r["name"], "depth": d, "line": line_of(c) if d else "",
+      "parent": r["parent"] if r["parent"] in recs else "", "addl": r["addl"] if r["addl"] in recs else "",
+      "status": r["status"], "endpoints": r["endpoints"], "new": bool(NEW_RE.fullmatch(c)),
+      "pol": r["pol"], "det": r["det"], "inc": r["inc"]})
+  return {"cids": cids}
 
-    # detail card shown in the side panel when the node is clicked
-    kind = {"root": "Root CID", "line": "Service line", "tenant": "Tenant"}[layer]
-    if layer == "tenant" and line in recs: kind += " &#183; " + e(line_text(recs[line]["name"]))
-    parents = ""
-    for p, additional in ((r["parent"], False), (r["addl"], True)):
-      if p not in recs: continue
-      dot = ROOT_COLOR if depth.get(p) == 0 else color_of.get(line_of(p), ROOT_COLOR)
-      tag = '<span class="d-tag">additional</span>' if additional else ""
-      parents += (f'<div class="d-parent"><span class="d-dot sm" style="background:{dot}"></span>'
-                  f'<span>{e(recs[p]["name"])}</span>{tag}</div>')
-    cid_html = f'<span class="d-mono">{e(c)}</span>' + (
-      '<span class="d-tag">to be created</span>' if NEW_RE.fullmatch(c) else
-      f'<button type="button" class="d-copy" data-copy="{e(c)}">Copy</button>')
-    settings = "".join(
-      f'<div class="d-set"><span>{label}</span><span class="d-chip {cls if r[k] else "d-off"}">'
-      f'{"Enabled" if r[k] else "Disabled"}</span></div>'
-      for label, k, cls in (("Policy Inheritance", "pol", "d-pol"), ("Detection Aggregation", "det", "d-det")))
-    rows = [("CID String", cid_html),
-            ("Status", e(r["status"].capitalize())),
-            ("Parents", parents or '<span class="d-muted">None - this is the root</span>'),
-            ("Settings", settings),
-            ("Child CIDs", str(child_count(c)))]
-    detail = (f'<div class="d-head"><span class="d-dot" style="background:{color}"></span>'
-              f'<span class="d-name">{e(r["name"])}</span></div><div class="d-sub">{kind}</div>'
-              + "".join(f'<div class="d-row"><div class="d-label">{e(k)}</div><div class="d-value">{v}</div></div>'
-                        for k, v in rows))
+def js(value):
+  """JSON for an inline <script>: '</' is escaped so no string can close the tag."""
+  return json.dumps(value, ensure_ascii=False).replace("</", "<\\/")
 
-    nodes.append({
-      "id": f"{view}/{c}", "name": r["name"], "color": color, "shape": "dot",
-      "size": TENANT_SIZE if layer == "tenant" else NODE_SIZE,
-      "x": 0, "y": 0, "physics": False, "row": row,
-      "opacity": opacity, "font": {"color": f"rgba(255, 255, 255, {opacity})" if opacity < 1 else "#ffffff"},
-      "layer": layer, "view": view, "line": line, "lines": lines, "extra": r["addl"] in recs,
-      "detail": detail})
-    # the page draws tenant names itself, to the right of their dots
-    if layer != "tenant": nodes[-1]["label"] = r["name"]
-
-    # links to each parent: parent -> child (policy), child -> parent (detection)
-    me = f"{view}/{c}"
-    for p, dashed in ((r["parent"], False), (r["addl"], True)):
-      if p not in recs: continue
-      parent = f"{view}/{p}"
-      pairs = [("link", parent, me, POLICY_COLOR if r["pol"] else LINK_COLOR, LINK_WIDTH)]
-      if r["det"]: pairs.append(("det", me, parent, DETECTION_COLOR, DETECTION_WIDTH))
-      for kind, src, dst, col, width in pairs:
-        dim = rgba(col, LINK_OPACITY)
-        look = {"color": dim, "highlight": dim, "hover": dim, "inherit": False}
-        full = {"color": col, "highlight": col, "hover": col, "inherit": False}
-        edges.append({"from": src, "to": dst, "arrows": "to", "kind": kind, "dashes": dashed,
-                      "color": look, "base": look, "full": full, "width": width, "baseWidth": width,
-                      "smooth": {"type": "curvedCW", "roundness": LINK_CURVE}})
-  return nodes, edges
+def css_vars(theme):
+  """A theme as CSS custom properties: {'bg': '#000'} -> '--bg: #000; '."""
+  return "".join(f"--{k}: {v}; " for k, v in theme.items())
 
 
 
-#################################### Part 6: Side Panel ->
+#################################### Part 6: Page Template ->
 
-def line_filter(lines_js):
-  """The Service lines filter: one checkbox per line (multi-select), with its color dot."""
-  boxes = "".join(f'<label class="f-option"><input type="checkbox" class="f-line" value="{e(c)}">'
-                  f'<span class="f-dot" style="background:{color}"></span><span class="f-text">{e(text)}</span></label>'
-                  for c, text, color, _ in lines_js)
-  return f'<div class="f-group"><div class="f-group-title">Service lines</div>{boxes}</div>'
-
-# The page around the graph: the overlays on the canvas (Tenants table, Links
-# legend, title) and the side panel (View, Filters/Details, Source). The
-# %%NAME%% markers are filled in by build_page().
-SIDE_PANEL = """
-<style>
-  body { margin: 0; display: flex; height: 100vh; overflow: hidden; }
-  .card { flex: 1 1 0; min-width: 0; }
-  #side-panel {
-    width: 25%; flex-shrink: 0; background: #111; box-sizing: border-box;
-    height: 100vh; overflow-y: auto; font-family: sans-serif;
-    display: flex; flex-direction: column; border-left: 1px solid #222;
-    scrollbar-width: thin; scrollbar-color: #333 transparent;
-  }
-  #graph-title {
-    position: fixed; top: 14px; left: 37.5%; transform: translateX(-50%);
-    z-index: 5; color: #fff; font-family: sans-serif; font-size: 18px;
-    font-weight: 700; letter-spacing: 0.18em; pointer-events: none; white-space: nowrap;
-  }
-  #empty-state {
-    position: fixed; top: 50%; left: 37.5%; transform: translate(-50%, -50%);
-    z-index: 5; color: #888; font-family: sans-serif; font-size: 14px;
-    pointer-events: none; display: none;
-  }
-  #view-bar { padding: 20px; border-bottom: 1px solid #222; }
-  .vb-label, #mode-title {
-    color: #888; text-transform: uppercase;
-    letter-spacing: 0.08em; font-size: 11px; font-weight: 700;
-  }
-  #view-toggle { display: flex; gap: 8px; margin-top: 10px; }
-  .vt-btn {
-    flex: 1; text-align: left; padding: 10px 12px; border-radius: 8px; border: 1px solid #333;
-    background: #161616; cursor: pointer; font-family: sans-serif;
-  }
-  .vt-btn b { display: block; font-size: 14px; color: #ccc; }
-  .vt-btn span { display: block; margin-top: 2px; font-size: 11px; color: #777; }
-  .vt-btn:hover { border-color: #555; }
-  .vt-btn.active { background: var(--vc); border-color: var(--vc); }
-  .vt-btn.active b, .vt-btn.active span { color: #fff; }
-  .vt-btn:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
-  #mode-title { display: flex; align-items: center; justify-content: space-between; padding: 20px 20px 0; }
-  #back-btn {
-    background: none; border: 0; padding: 0; cursor: pointer; color: #4fc3f7;
-    font-family: sans-serif; font-size: 12px; font-weight: 600;
-  }
-  #back-btn:hover { text-decoration: underline; }
-  #filter-sidebar { padding: 8px 20px 20px; }
-  .f-group { padding: 14px 0; }
-  .f-group + .f-group { border-top: 1px solid #1f1f1f; }
-  .f-group-title { color: #eee; font-size: 13px; font-weight: 600; margin-bottom: 6px; }
-  .f-option {
-    display: flex; align-items: center; color: #aaa; font-size: 13px; padding: 6px 8px; margin: 0 -8px;
-    border-radius: 6px; cursor: pointer; user-select: none;
-    transition: background 0.12s, color 0.12s;
-  }
-  .f-dot { width: 8px; height: 8px; border-radius: 50%; flex: none; margin-right: 8px; }
-  .f-text { flex: 1; }
-  .f-option:hover { background: #1a1a1a; color: #fff; }
-  .f-option:has(input:checked) { color: #fff; }
-  .f-option input {
-    appearance: none; -webkit-appearance: none; width: 16px; height: 16px;
-    margin: 0 10px 0 0; vertical-align: -3px; border: 1.5px solid #555;
-    border-radius: 4px; background: #0d0d0d; cursor: inherit;
-    transition: background-color 0.12s, border-color 0.12s;
-  }
-  .f-option:hover input { border-color: #888; }
-  .f-option input:checked {
-    border-color: #4fc3f7;
-    background: #4fc3f7 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M2.5 6.2l2.3 2.3 4.7-4.9' fill='none' stroke='%23111' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center / 12px no-repeat;
-  }
-  .f-option input:focus-visible { outline: 2px solid rgba(79,195,247,0.5); outline-offset: 2px; }
-  #detail-panel { display: none; padding: 14px 20px 24px; color: #ddd; font-size: 13px; }
-  .d-head { display: flex; align-items: center; gap: 10px; }
-  .d-dot { width: 12px; height: 12px; border-radius: 50%; flex: none; }
-  .d-dot.sm { width: 8px; height: 8px; }
-  .d-name { color: #fff; font-size: 15px; font-weight: 700; line-height: 1.35; }
-  .d-sub { color: #888; font-size: 12px; margin: 4px 0 14px 22px; }
-  .d-row { padding: 12px 0; border-top: 1px solid #1f1f1f; }
-  .d-label {
-    color: #888; text-transform: uppercase; letter-spacing: 0.08em;
-    font-size: 10px; font-weight: 700; margin-bottom: 6px;
-  }
-  .d-value { color: #eee; line-height: 1.5; }
-  .d-mono { font-family: Consolas, monospace; font-size: 12px; word-break: break-all; }
-  .d-copy {
-    margin-left: 8px; padding: 1px 8px; font-size: 11px; color: #aaa; background: #1b1b1b;
-    border: 1px solid #333; border-radius: 4px; cursor: pointer;
-  }
-  .d-copy:hover { color: #fff; border-color: #555; }
-  .d-parent { display: flex; align-items: center; gap: 8px; }
-  .d-parent + .d-parent { margin-top: 4px; }
-  .d-tag {
-    margin-left: 6px; padding: 0 6px; font-size: 10px; color: #aaa;
-    border: 1px solid #333; border-radius: 4px;
-  }
-  .d-set { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
-  .d-set + .d-set { margin-top: 8px; }
-  .d-chip { padding: 2px 10px; border-radius: 999px; border: 1px solid; font-size: 11px; font-weight: 700; }
-  .d-pol { color: %%POLICY%%; border-color: %%POLICY%%; }
-  .d-det { color: %%DETECTION%%; border-color: %%DETECTION%%; }
-  .d-off { color: #777; border-color: #333; }
-  .d-muted { color: #777; }
-  .sp-section { padding: 16px 20px; border-top: 1px solid #222; font-size: 12px; color: #bbb; line-height: 1.7; }
-  .sp-footer { margin-top: auto; }
-  .sp-title {
-    color: #888; text-transform: uppercase; letter-spacing: 0.08em;
-    font-size: 11px; font-weight: 700; margin-bottom: 8px;
-  }
-  .ua-row { display: flex; justify-content: space-between; gap: 18px; font-variant-numeric: tabular-nums; }
-  .ua-value { color: #fff; font-weight: 700; }
-  #counts-box, #legend {
-    position: fixed; left: 12px; z-index: 5; background: rgba(17,17,17,0.85);
-    color: #bbb; font-family: sans-serif; font-size: 12px; padding: 10px 14px;
-    border-radius: 6px; line-height: 1.6; font-variant-numeric: tabular-nums;
-  }
-  #counts-box { top: 12px; min-width: 170px; }
-  #legend { bottom: 12px; }
-  #counts-box .sp-title, #legend .sp-title { font-size: 10px; margin-bottom: 4px; }
-  .cb-row { display: flex; align-items: center; gap: 8px; }
-  .cb-dot { width: 8px; height: 8px; border-radius: 50%; flex: none; }
-  .cb-label { flex: 1; }
-  .cb-n { color: #fff; font-weight: 700; text-align: right; }
-  .cb-total { border-top: 1px solid #333; margin-top: 4px; padding-top: 4px; }
-  .cb-total .cb-label { color: #888; }
-  .lg-row { display: flex; align-items: center; gap: 10px; }
-  .lg-row svg { flex: none; }
-</style>
-<div id="counts-box"></div>
-<div id="legend">
-  <div class="sp-title">Links</div>
-  <div class="lg-row"><svg width="28" height="8"><line x1="0" y1="4" x2="28" y2="4" stroke="%%POLICY%%" stroke-opacity="%%LINK_OPACITY%%" stroke-width="2"/></svg>Policy Inheritance (parent &#8594; child)</div>
-  <div class="lg-row"><svg width="28" height="8"><line x1="0" y1="4" x2="28" y2="4" stroke="%%DETECTION%%" stroke-opacity="%%LINK_OPACITY%%" stroke-width="1.2"/></svg>Detection Aggregation (child &#8594; parent)</div>
-  <div class="lg-row"><svg width="28" height="8"><line x1="0" y1="4" x2="28" y2="4" stroke="%%LINK%%" stroke-opacity="%%LINK_OPACITY%%" stroke-width="2"/></svg>Parent link, no Policy Inheritance</div>
-  <div class="lg-row"><svg width="28" height="8"><line x1="0" y1="4" x2="28" y2="4" stroke="#888" stroke-opacity="%%LINK_OPACITY%%" stroke-width="2" stroke-dasharray="4 3"/></svg>Additional parent (dashed)</div>
-</div>
-<div id="graph-title">%%TITLE%%</div>
-<div id="empty-state">No CIDs match this filter</div>
-<div id="side-panel">
-  <div id="view-bar">
-    <div class="vb-label">View</div>
-    <div id="view-toggle">%%VIEW_BUTTONS%%</div>
+# The page around the graph, in the layout of the Falcon console: a header
+# (name, search, view switch, theme), the Graph and Table tabs, the graph
+# pane (toolbar, legend, source stamp), the table pane and the details
+# drawer. The %%NAME%% markers are filled in by build_page(); the page
+# script (Part 7) draws the rest from DATA.
+PAGE = """<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>%%TAB_TITLE%%</title>
+<link rel="icon" href="%%FAVICON%%">
+<style>%%CSS%%</style>
+</head>
+<body>
+<header class="topbar">
+  <div class="brand">
+    <svg class="brand-icon" width="22" height="22" viewBox="-12 -12 24 24" aria-hidden="true"><g class="glyph">%%GLYPH%%</g></svg>
+    <span class="brand-app">%%APP%%</span>
+    <span class="brand-sep"></span>
+    <span class="brand-page">%%PAGE%%</span>
+    <span class="brand-company">%%COMPANY%%</span>
   </div>
-  <div id="mode-title"><span id="mode-text">Filters</span><button type="button" id="back-btn" hidden>&#8592; Back to filters</button></div>
-  <div id="filter-sidebar">%%FILTER_GROUPS%%</div>
-  <div id="detail-panel"></div>
-  <div class="sp-section sp-footer">%%UPDATED%%</div>
-</div>
+  <label class="search">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+    <input id="search" type="search" placeholder="Search CID name or string" autocomplete="off" spellcheck="false" aria-label="Search CIDs">
+    <kbd>/</kbd>
+  </label>
+  <div class="top-right">
+    <div class="seg" id="view-seg" role="group" aria-label="View">%%VIEW_BUTTONS%%</div>
+    <button type="button" class="icon-btn" id="theme-btn" aria-label="Switch between light and dark theme">
+      <svg class="i-sun" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+      <svg class="i-moon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+    </button>
+  </div>
+</header>
+<nav class="tabs" role="tablist" aria-label="Views of the hierarchy">
+  <button type="button" role="tab" class="tab" data-tab="graph" aria-selected="true">Graph</button>
+  <button type="button" role="tab" class="tab" data-tab="table" aria-selected="false">Table</button>
+</nav>
+<main>
+  <section id="graph-pane" class="pane">
+    <svg id="graph" role="img" aria-label="CID hierarchy graph"><g id="viewport"></g></svg>
+    <div id="overlay-left">
+      <div class="toolbar" role="toolbar" aria-label="Graph tools">
+        <button type="button" id="tb-legend" title="Show or hide the legend" aria-pressed="true"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M9 4v16"/></svg></button>
+        <button type="button" id="tb-fit" title="Fit to screen"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9V5h4M16 4h4v4M20 15v4h-4M8 20H4v-4"/></svg></button>
+        <button type="button" id="tb-in" title="Zoom in"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></button>
+        <button type="button" id="tb-out" title="Zoom out"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M5 12h14"/></svg></button>
+      </div>
+      <aside id="legend" class="legend" aria-label="Legend"></aside>
+    </div>
+    <div id="empty" class="empty" hidden>No CIDs to show. Turn a service line back on in the legend.</div>
+    <div id="stamp" class="stamp"></div>
+  </section>
+  <section id="table-pane" class="pane" hidden>
+    <div id="table-bar" class="table-bar"></div>
+    <div class="table-wrap"><table id="cid-table"></table></div>
+  </section>
+  <aside id="drawer" class="drawer" aria-hidden="true" aria-label="CID details"></aside>
+</main>
+<script>%%SCRIPT%%</script>
+</body>
+</html>
 """
 
-# Pyvis has no filter, detail panel or tree layout built in - this script runs
-# after the network exists: view switch, Service lines filter, click
-# highlight and details, the tree layout with the tenant names, and the
-# framing of the view.
-FILTER_SCRIPT = """
-<script>
-(function () {
-  var filterSidebar = document.getElementById('filter-sidebar');
-  var detailPanel = document.getElementById('detail-panel');
-  var modeText = document.getElementById('mode-text');
-  var backBtn = document.getElementById('back-btn');
-  var viewButtons = Array.from(document.querySelectorAll('.vt-btn'));
-  var currentView = viewButtons[0].dataset.view;
-  var emptyState = document.getElementById('empty-state');
+PAGE_CSS = r"""
+:root { %%DARK%% --font: %%FONT%%; --mono: Consolas, "Cascadia Mono", "SFMono-Regular", Menlo, monospace; color-scheme: dark; }
+:root[data-theme="light"] { %%LIGHT%% color-scheme: light; }
+*, *::before, *::after { box-sizing: border-box; }
+html, body { height: 100%; margin: 0; }
+body {
+  display: flex; flex-direction: column; overflow: hidden; background: var(--bg); color: var(--text);
+  font: 13px/1.45 var(--font); -webkit-font-smoothing: antialiased;
+}
+button { font: inherit; color: inherit; }
+[hidden] { display: none !important; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
-  // each node's own look, restored when the highlight is turned off
-  var BASE_LOOK = {};
-  nodes.get().forEach(function (n) { BASE_LOOK[n.id] = {color: n.color, opacity: n.opacity, font: n.font}; });
-  var lit = [];
+/* header */
+.topbar {
+  flex: none; height: 52px; display: grid; align-items: center; gap: 16px; padding: 0 16px;
+  grid-template-columns: minmax(0, 1fr) minmax(220px, 440px) minmax(0, 1fr);
+  background: var(--bar); border-bottom: 1px solid var(--border);
+}
+.brand { display: flex; align-items: center; gap: 10px; min-width: 0; white-space: nowrap; }
+.brand-icon { flex: none; }
+.brand-app { font-size: 14px; font-weight: 700; }
+.brand-sep { width: 1px; height: 18px; background: var(--border); flex: none; }
+.brand-page { color: var(--muted); }
+.brand-company { color: var(--faint); overflow: hidden; text-overflow: ellipsis; }
+.brand-company:not(:empty)::before { content: "·"; margin-right: 10px; }
+.search {
+  display: flex; align-items: center; gap: 8px; height: 34px; padding: 0 10px; border-radius: 8px;
+  border: 1px solid var(--border); background: var(--field); color: var(--muted);
+}
+.search:focus-within { border-color: var(--accent); }
+.search input { flex: 1; min-width: 0; border: 0; outline: 0; background: transparent; color: var(--text); font: inherit; }
+.search input::placeholder { color: var(--faint); }
+.search kbd { font: 11px var(--font); color: var(--faint); border: 1px solid var(--border); border-radius: 4px; padding: 0 6px; }
+.top-right { display: flex; justify-content: flex-end; align-items: center; gap: 10px; }
+.seg { display: inline-flex; gap: 2px; padding: 3px; border-radius: 9px; border: 1px solid var(--border); background: var(--field); }
+.seg button {
+  display: inline-flex; align-items: center; gap: 7px; padding: 4px 12px; border: 0; border-radius: 6px;
+  background: transparent; color: var(--muted); font-weight: 600; cursor: pointer;
+}
+.seg button:hover { color: var(--text); }
+.seg .sw { width: 8px; height: 8px; border-radius: 50%; background: var(--vc); }
+.seg button[aria-pressed="true"] { background: var(--vc); color: #fff; }
+.seg button[aria-pressed="true"] .sw { background: #fff; }
+.icon-btn {
+  width: 34px; height: 34px; display: grid; place-items: center; flex: none; border: 0; border-radius: 8px;
+  background: transparent; color: var(--muted); cursor: pointer;
+}
+.icon-btn:hover { background: var(--hover); color: var(--text); }
+:root[data-theme="dark"] .i-moon, :root[data-theme="light"] .i-sun { display: none; }
+.tabs { flex: none; display: flex; justify-content: center; gap: 30px; height: 44px; background: var(--bar); border-bottom: 1px solid var(--border); }
+.tab { position: relative; padding: 0 8px; border: 0; background: none; color: var(--muted); font-size: 15px; cursor: pointer; }
+.tab:hover { color: var(--text); }
+.tab[aria-selected="true"] { color: var(--text); }
+.tab[aria-selected="true"]::after {
+  content: ""; position: absolute; left: -6px; right: -6px; bottom: -1px; height: 3px;
+  border-radius: 3px 3px 0 0; background: var(--accent);
+}
+main { position: relative; flex: 1; min-height: 0; }
+.pane { position: absolute; inset: 0; background: var(--canvas); }
 
-  function showFilters() {
-    detailPanel.style.display = 'none';
-    filterSidebar.style.display = 'block';
-    modeText.textContent = 'Filters';
-    backBtn.hidden = true;
-    clearHighlight();
+/* graph */
+#graph-pane { overflow: hidden; }
+#graph { display: block; width: 100%; height: 100%; cursor: grab; touch-action: none; user-select: none; }
+#graph.panning { cursor: grabbing; }
+#graph text { font-family: var(--font); fill: var(--text); }
+.card { fill: var(--card); stroke: var(--card-border); }
+.card-div { fill: none; stroke: var(--card-border); }
+.card-g.ctx { opacity: 0.55; }
+.link { fill: none; stroke: var(--link); stroke-width: 1.4; }
+.link.pol { stroke: var(--policy); stroke-width: 1.8; }
+.link.addl { stroke: var(--addl); stroke-width: 1.2; stroke-dasharray: 5 4; }
+.link.dim { stroke: var(--link-dim); }
+.halo { fill: none; stroke: var(--canvas); stroke-width: 6; }
+.port { fill: var(--addl); }
+.port.dim { fill: var(--link-dim); }
+.link-hi { fill: none; stroke: var(--hi); stroke-width: 2; }
+.link-hi.pol { stroke: var(--policy); stroke-width: 2.4; }
+.link-hi.addl { stroke-dasharray: 5 4; }
+.row, .node { cursor: pointer; transition: opacity 0.15s; }
+.row.dim, .node.dim { opacity: 0.3; }
+.node-bg { fill: transparent; }
+.row:hover .node-bg, .node:hover .node-bg { fill: var(--hover); }
+.row.sel .node-bg, .node.sel .node-bg { fill: var(--sel-row); }
+.glyph { fill: var(--parent); }
+.node.ctx .glyph { opacity: 0.6; }
+.dot { fill: var(--cid); }
+.row.sel .dot { stroke: var(--hi); stroke-width: 2.5; }
+.row.inactive .dot { fill: none; stroke: var(--faint); stroke-width: 1.6; }
+#graph .row.inactive .t-name { fill: var(--faint); }
+#graph .t-name { font-size: 13px; }
+#graph .t-pre { fill: var(--muted); }
+#graph .row.match .t-name { fill: var(--accent-text); }
+#graph .t-head { font-size: 14px; font-weight: 600; }
+#graph .t-sub { font-size: 11.5px; fill: var(--muted); }
+#graph .badge text, .lg-badge text { font-size: 10px; font-weight: 700; text-anchor: middle; font-family: var(--font); }
+.badge.pol rect, .lg-badge.pol rect { fill: var(--policy); }
+.badge.det rect, .lg-badge.det rect { fill: var(--detect); }
+#graph .badge.pol text, .lg-badge.pol text { fill: var(--on-pol); }
+#graph .badge.det text, .lg-badge.det text { fill: var(--on-det); }
+.chip rect { fill: none; stroke: var(--border); }
+#graph .chip text { font-size: 10.5px; fill: var(--muted); }
+
+/* toolbar and legend */
+#overlay-left { position: absolute; top: 14px; left: 14px; z-index: 4; display: flex; align-items: flex-start; gap: 8px; max-height: calc(100% - 28px); }
+.toolbar {
+  display: flex; flex-direction: column; gap: 2px; padding: 4px; border-radius: 10px;
+  background: var(--panel); border: 1px solid var(--border); box-shadow: var(--shadow);
+}
+.toolbar button {
+  width: 32px; height: 32px; display: grid; place-items: center; border: 0; border-radius: 7px;
+  background: transparent; color: var(--muted); cursor: pointer;
+}
+.toolbar button:hover { background: var(--hover); color: var(--text); }
+.toolbar button[aria-pressed="true"] { background: var(--hover-strong); color: var(--text); }
+.legend {
+  width: 296px; max-height: calc(100vh - 140px); overflow-y: auto; border-radius: 10px;
+  background: var(--panel); border: 1px solid var(--border); box-shadow: var(--shadow);
+  scrollbar-width: thin; scrollbar-color: var(--border) transparent;
+}
+.lg-title {
+  display: flex; align-items: center; justify-content: space-between; padding: 8px 8px 8px 16px;
+  font-size: 15px; font-weight: 700; border-bottom: 1px solid var(--border);
+}
+.lg-row {
+  display: grid; grid-template-columns: 24px minmax(0, 1fr) auto 28px; align-items: center; gap: 10px;
+  min-height: 42px; padding: 4px 8px 4px 16px; border-bottom: 1px solid var(--border-soft);
+}
+.lg-row:last-child { border-bottom: 0; }
+.lg-ico { display: grid; place-items: center; color: var(--muted); }
+.lg-label { min-width: 0; font-weight: 500; }
+.lg-n { color: var(--muted); font-variant-numeric: tabular-nums; }
+.lg-btn {
+  width: 28px; height: 28px; display: grid; place-items: center; border: 0; border-radius: 6px;
+  background: transparent; color: var(--muted); cursor: pointer;
+}
+.lg-btn:hover { background: var(--hover); color: var(--text); }
+.lg-btn svg { transition: transform 0.15s; }
+.lg-btn.open svg { transform: rotate(180deg); }
+.lg-row.off .lg-ico, .lg-row.off .lg-label, .lg-row.off .lg-n { opacity: 0.45; }
+.lg-sub { background: var(--panel-2); border-bottom: 1px solid var(--border-soft); padding: 4px 0; }
+.lg-sub .lg-row { min-height: 34px; padding-left: 30px; border-bottom: 0; grid-template-columns: 16px minmax(0, 1fr) auto 28px; }
+.lg-solo {
+  min-width: 0; padding: 0; border: 0; background: none; color: var(--text); font-size: 12.5px; text-align: left;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: pointer;
+}
+.lg-solo:hover { text-decoration: underline; }
+.lg-row.solo .lg-solo { color: var(--accent-text); font-weight: 600; }
+.lg-reset { display: block; margin: 2px 0 6px 30px; padding: 2px 0; border: 0; background: none; color: var(--accent-text); font-size: 12px; cursor: pointer; }
+.lg-reset:hover { text-decoration: underline; }
+.lg-section {
+  padding: 12px 16px 6px; font-size: 10.5px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--faint); border-bottom: 1px solid var(--border-soft);
+}
+.ico-dot { width: 12px; height: 12px; border-radius: 50%; background: var(--cid); }
+.ico-dot.off { background: none; border: 1.6px solid var(--faint); }
+.stamp { position: absolute; right: 16px; bottom: 12px; z-index: 2; color: var(--faint); font-size: 11.5px; pointer-events: none; }
+.stamp b { color: var(--muted); font-weight: 600; }
+.empty { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: var(--muted); }
+
+/* table */
+#table-pane { display: flex; flex-direction: column; }
+body.has-drawer #table-pane { right: 380px; }
+.table-bar { flex: none; display: flex; align-items: center; flex-wrap: wrap; gap: 8px; padding: 14px 24px; border-bottom: 1px solid var(--border); }
+.chip-btn {
+  display: inline-flex; align-items: center; gap: 7px; height: 30px; padding: 0 12px; border-radius: 15px;
+  border: 1px solid var(--border); background: var(--panel); color: var(--faint); cursor: pointer;
+}
+.chip-btn:hover { color: var(--text); }
+.chip-btn[aria-pressed="true"] { color: var(--text); border-color: var(--accent); }
+.chip-btn[aria-pressed="false"] svg { opacity: 0.4; }
+.link-btn { border: 0; background: none; color: var(--accent-text); cursor: pointer; padding: 0 6px; }
+.link-btn:hover { text-decoration: underline; }
+.bar-n { margin-left: auto; color: var(--muted); font-variant-numeric: tabular-nums; }
+.bar-n b { color: var(--text); }
+.table-wrap { flex: 1; overflow: auto; padding: 0 24px 24px; scrollbar-width: thin; scrollbar-color: var(--border) transparent; }
+#cid-table { width: 100%; border-collapse: separate; border-spacing: 0; font-variant-numeric: tabular-nums; }
+#cid-table th {
+  position: sticky; top: 0; z-index: 1; padding: 0; text-align: left; background: var(--canvas);
+  border-bottom: 1px solid var(--border); white-space: nowrap;
+}
+#cid-table th button {
+  display: flex; align-items: center; gap: 4px; width: 100%; padding: 14px 12px 10px; border: 0; background: none;
+  color: var(--muted); font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; cursor: pointer;
+}
+#cid-table th button:hover { color: var(--text); }
+#cid-table th.num button { justify-content: flex-end; }
+#cid-table th[aria-sort="ascending"] button, #cid-table th[aria-sort="descending"] button { color: var(--text); }
+#cid-table td { padding: 7px 12px; border-bottom: 1px solid var(--border-soft); white-space: nowrap; }
+#cid-table td.num { text-align: right; }
+#cid-table tbody tr { cursor: pointer; }
+#cid-table tbody tr:hover td { background: var(--hover); }
+#cid-table tbody tr.sel td { background: var(--sel-row); }
+.nm { display: inline-flex; align-items: center; gap: 9px; }
+.t-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--cid); flex: none; margin: 0 3px; }
+.t-dot.off { background: none; border: 1.5px solid var(--faint); }
+.muted { color: var(--faint); }
+.c-cid { display: flex; align-items: center; gap: 6px; }
+.c-cid code { font: 12px var(--mono); color: var(--muted); }
+.copy {
+  width: 26px; height: 26px; display: grid; place-items: center; border: 0; border-radius: 6px;
+  background: transparent; color: var(--faint); cursor: pointer;
+}
+.copy:hover, .copy.done { background: var(--hover); color: var(--text); }
+.empty-row { text-align: center; padding: 32px !important; }
+
+/* chips used in the table and the drawer */
+.pill {
+  display: inline-flex; align-items: center; gap: 6px; height: 22px; padding: 0 9px; border-radius: 11px;
+  border: 1px solid var(--border); color: var(--muted); font-size: 11.5px; font-weight: 600; white-space: nowrap;
+}
+.pill i { width: 7px; height: 7px; border-radius: 50%; }
+.pill.ok i { background: var(--ok); }
+.pill.warn i { background: var(--warn); }
+.pill.new { color: var(--accent-text); border-color: var(--accent); }
+.pill.pol { color: var(--policy-text); border-color: color-mix(in srgb, var(--policy) 60%, transparent); background: color-mix(in srgb, var(--policy) 14%, transparent); }
+.pill.det { color: var(--detect-text); border-color: color-mix(in srgb, var(--detect) 60%, transparent); background: color-mix(in srgb, var(--detect) 14%, transparent); }
+.pill.off { color: var(--faint); border-color: transparent; padding: 0; }
+
+/* details drawer */
+.drawer {
+  position: absolute; top: 0; right: 0; bottom: 0; z-index: 6; width: 380px; max-width: 100%; overflow-y: auto;
+  background: var(--panel); border-left: 1px solid var(--border); box-shadow: var(--shadow);
+  transform: translateX(105%); transition: transform 0.2s ease; visibility: hidden;
+}
+.drawer.open { transform: none; visibility: visible; }
+.dw-head {
+  position: sticky; top: 0; z-index: 1; display: flex; align-items: flex-start; gap: 12px; padding: 18px 12px 16px 20px;
+  background: var(--panel); border-bottom: 1px solid var(--border);
+}
+.dw-head > svg { margin-top: 1px; flex: none; }
+.dw-title { flex: 1; min-width: 0; }
+.dw-name { font-size: 16px; font-weight: 700; line-height: 1.3; overflow-wrap: anywhere; }
+.dw-kind { margin-top: 3px; color: var(--muted); font-size: 12px; }
+.dw-sec { padding: 14px 20px; border-bottom: 1px solid var(--border-soft); }
+.dw-label { margin-bottom: 8px; color: var(--faint); font-size: 10.5px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; }
+.dw-cid { display: flex; align-items: center; gap: 10px; }
+.dw-cid code { flex: 1; font: 12px/1.4 var(--mono); overflow-wrap: anywhere; }
+.btn-sm {
+  flex: none; height: 26px; padding: 0 10px; border-radius: 6px; border: 1px solid var(--border);
+  background: var(--panel-2); color: var(--muted); font-size: 12px; cursor: pointer;
+}
+.btn-sm:hover { color: var(--text); }
+.dw-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; padding: 14px 20px; border-bottom: 1px solid var(--border-soft); }
+.dw-num { font-size: 18px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.dw-set { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 4px 0; }
+.dw-go {
+  display: flex; align-items: center; gap: 9px; width: calc(100% + 16px); margin: 0 -8px; padding: 6px 8px;
+  border: 0; border-radius: 6px; background: none; color: var(--text); text-align: left; cursor: pointer;
+}
+.dw-go:hover { background: var(--hover); }
+.dw-go > span:nth-child(2) { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tag { margin-left: auto; flex: none; padding: 0 6px; border: 1px solid var(--border); border-radius: 4px; color: var(--muted); font-size: 10.5px; }
+.mini-dot { width: 9px; height: 9px; margin: 0 2.5px; border-radius: 50%; background: var(--cid); flex: none; }
+.mini-dot.off { background: none; border: 1.5px solid var(--faint); }
+.dw-none { color: var(--faint); }
+"""
+
+
+
+#################################### Part 7: Page Script ->
+
+# Draws the page from DATA (both views) and LAYOUT: the graph (an SVG with
+# its own pan and zoom, no external library, so the page also opens
+# offline), the legend with its show/hide toggles, the table, the search and
+# the details drawer.
+PAGE_SCRIPT = r"""
+(() => {
+  'use strict';
+
+  const L = LAYOUT, VIEWS = DATA.views;
+  const NAME_FONT = `13px ${L.font}`, HEAD_FONT = `600 14px ${L.font}`, SUB_FONT = `11.5px ${L.font}`,
+        CHIP_FONT = `10.5px ${L.font}`;
+  const IR = L.iconR, RS = L.iconR * L.rootScale;
+  const $ = id => document.getElementById(id);
+  const svg = $('graph'), port = $('viewport'), drawer = $('drawer');
+
+  // ---------- icons
+  const icon = (d, size = 16) => `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" ` +
+    `stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`;
+  const EYE = icon('<path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>');
+  const EYE_OFF = icon('<path d="M10.6 5.1A10 10 0 0 1 12 5c6.4 0 10 7 10 7a17 17 0 0 1-2.4 3.3M6.6 6.6C3.7 8.4 2 12 2 12s3.6 7 10 7a9.7 9.7 0 0 0 5.4-1.6"/><path d="M9.9 9.9a3 3 0 0 0 4.2 4.2"/><path d="M3 3l18 18"/>');
+  const CHEVRON = icon('<path d="M6 9l6 6 6-6"/>');
+  const CLOSE = icon('<path d="M18 6L6 18M6 6l12 12"/>', 18);
+  const COPY = icon('<rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/>', 14);
+  const PANEL = icon('<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M9 4v16"/>');
+  const STACK = icon('<rect x="3" y="8" width="13" height="13" rx="2"/><path d="M8 8V5a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-3"/>', 18);
+  const LG_LINK = '<svg width="24" height="10" aria-hidden="true"><path d="M1 5h22" style="stroke: var(--link); stroke-width: 1.8"/></svg>';
+  const LG_ADDL = '<svg width="24" height="10" aria-hidden="true"><path d="M1 5h18" style="stroke: var(--addl); stroke-width: 1.6; stroke-dasharray: 4 3"/><circle cx="21" cy="5" r="2.6" style="fill: var(--addl)"/></svg>';
+  const lgBadge = (cls, letter) => `<svg class="lg-badge ${cls}" width="20" height="16" aria-hidden="true"><rect x="1" y="0" width="18" height="16" rx="4"/>` +
+    `<text x="10" y="8" dy="0.35em">${letter}</text></svg>`;
+  const r1 = x => Math.round(x * 10) / 10;
+  const PETALS = [[0, 0], ...[0, 1, 2, 3, 4, 5].map(i => [7.2 * Math.cos(i * Math.PI / 3), 7.2 * Math.sin(i * Math.PI / 3)])]
+    .map(([x, y]) => `<circle cx="${r1(x)}" cy="${r1(y)}" r="3.3"/>`).join('');
+  const glyph = (x, y, s) => `<g class="glyph" transform="translate(${r1(x)},${r1(y)}) scale(${s})">${PETALS}</g>`;
+  const glyphIcon = size => `<svg width="${size}" height="${size}" viewBox="-12 -12 24 24" aria-hidden="true">${glyph(0, 0, 1)}</svg>`;
+
+  // ---------- data: each view indexed by CID, with its children (primary and additional)
+  for (const v of Object.values(VIEWS)) {
+    v.byId = {};
+    v.kids = {};
+    v.cids.forEach((c, i) => { c.row = i; v.byId[c.id] = c; });
+    for (const c of v.cids) for (const p of [c.parent, c.addl]) if (p) (v.kids[p] = v.kids[p] || []).push(c.id);
   }
 
-  function showDetail(nodeId) {
-    detailPanel.innerHTML = nodes.get(nodeId).detail;
-    filterSidebar.style.display = 'none';
-    detailPanel.style.display = 'block';
-    modeText.textContent = 'Details';
-    backBtn.hidden = false;
+  const state = {view: DATA.order[0], tab: 'graph', hidden: new Set(), solo: '',
+                 show: {pol: true, det: true, addl: true}, selected: '', query: '',
+                 sort: {key: '', dir: 1}, legend: window.innerWidth >= 1500, linesOpen: true};
+  let T = {x: 0, y: 0, k: 1}, lay = null, needFit = true, anim = 0;
+
+  // ---------- helpers
+  const esc = s => String(s).replace(/[&<>"']/g, ch => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'}[ch]));
+  const fmt = n => (n === '' || n == null || !isFinite(Number(n))) ? '—' : Number(n).toLocaleString('en-US');
+  const cap = s => s ? s[0].toUpperCase() + s.slice(1) : s;
+  const short = name => { const i = name.lastIndexOf('|'); return i === -1 ? name : name.slice(i + 1).trim(); };
+  const number = name => name.includes(' - ') ? name.split(' - ')[0].trim() : '';
+  const splitName = name => { const i = name.indexOf(' | '); return i > 0 && i <= 6 ? [name.slice(0, i + 3), name.slice(i + 3)] : ['', name]; };
+  const kidsOf = (v, id) => v.kids[id] || [];
+  const label = (v, id) => { const c = v.byId[id]; return c.depth < 2 ? short(c.name) : c.name; };
+  const lineTag = (v, id) => { const c = v.byId[id]; if (!c) return ''; const n = number(c.name); return (n ? n + ' · ' : '') + short(c.name); };
+  const linesOf = v => DATA.lineOrder.filter(id => v.byId[id] && v.byId[id].depth === 1);
+  const inactive = c => !c.new && c.status !== 'active';
+  const plural = (n, word) => `${n} ${word}${n === 1 ? '' : 's'}`;
+  const lineSub = (v, c) => {
+    const n = number(c.name), kids = kidsOf(v, c.id), extra = kids.filter(k => v.byId[k].addl === c.id).length;
+    return (n ? n + ' · ' : '') + plural(kids.length, 'child CID') + (extra ? ` (${extra} additional)` : '');
+  };
+  const rootSub = (v, c) => 'Root CID · ' + plural(kidsOf(v, c.id).length, 'child CID');
+  const statusPill = c => c.new ? '<span class="pill new">To be created</span>' :
+    `<span class="pill ${c.status === 'active' ? 'ok' : 'warn'}"><i></i>${esc(cap(c.status))}</span>`;
+  const onOff = (on, cls) => `<span class="pill ${on ? cls : 'off'}">${on ? 'Enabled' : 'Disabled'}</span>`;
+
+  const measure = document.createElement('canvas').getContext('2d'), widths = new Map();
+  function textW(text, font) {
+    const key = font + '|' + text;
+    if (!widths.has(key)) { measure.font = font; widths.set(key, measure.measureText(text).width); }
+    return widths.get(key);
   }
 
-  // the selected view: its button filled with its color
-  function setView(view) {
-    currentView = view;
-    viewButtons.forEach(function (b) {
-      var on = b.dataset.view === view;
-      b.classList.toggle('active', on);
-      b.setAttribute('aria-pressed', String(on));
-    });
+  // ---------- what is shown: the service lines switched on (all, or only the
+  // "solo" one); a tenant shows when its line or its additional parent's line
+  // is on, and brings its parents up to the root
+  const lineOn = id => state.solo ? state.solo === id : !state.hidden.has(id);
+  function ancestors(v, id, out) {
+    const c = v.byId[id];
+    for (const p of [c.parent, c.addl]) if (p && !out.has(p)) { out.add(p); ancestors(v, p, out); }
+    return out;
   }
-
-  // Copy button next to the CID String; falls back to a hidden textarea where
-  // the clipboard API is not available
-  function copyText(text, button) {
-    function done() { button.textContent = 'Copied'; setTimeout(function () { button.textContent = 'Copy'; }, 1200); }
-    if (navigator.clipboard && window.isSecureContext) {
-      navigator.clipboard.writeText(text).then(done, function () {});
-      return;
+  function visibleSet(v) {
+    const vis = new Set();
+    for (const c of v.cids) {
+      if (c.depth === 0) continue;
+      const via = c.depth >= 2 && c.addl ? v.byId[c.addl].line : '';
+      if (lineOn(c.line) || (via && lineOn(via))) vis.add(c.id);
     }
-    var area = document.createElement('textarea');
+    for (const id of [...vis]) ancestors(v, id, vis);
+    if (!linesOf(v).length) for (const c of v.cids) vis.add(c.id);
+    return vis;
+  }
+  function matchSet(v) {
+    const q = state.query.trim().toLowerCase();
+    if (!q) return null;
+    return new Set(v.cids.filter(c => c.name.toLowerCase().includes(q) || c.id.includes(q)).map(c => c.id));
+  }
+  // the clicked CID, its parents up to the root and its children down
+  function chainOf(v, id) {
+    const set = ancestors(v, id, new Set([id]));
+    const down = x => kidsOf(v, x).forEach(k => { if (!set.has(k)) { set.add(k); down(k); } });
+    down(id);
+    return set;
+  }
+
+  // ---------- layout: the root on top, one card per service line below it
+  const chipText = (v, c) => '+ ' + label(v, c.addl);
+  const chipW = (v, c) => textW(chipText(v, c), CHIP_FONT) + 14;
+  const badgeX = col => col.x + col.w - L.padX - 2 * L.badgeW - L.badgeSpace;
+  function rootLabelW(v, c) { return Math.max(textW(short(c.name), HEAD_FONT), textW(rootSub(v, c), SUB_FONT)); }
+
+  function layout(v, vis) {
+    const pos = {}, ext = {}, cols = [], colOf = {}, top = L.busY + L.cardGap;
+    let x = 0;
+    for (const id of linesOf(v)) {
+      if (!vis.has(id)) continue;
+      const line = v.byId[id];
+      const first = v.cids.filter(c => c.depth === 2 && c.parent === id && vis.has(c.id))
+        .sort((a, b) => (!!b.addl - !!a.addl) || (a.row - b.row));
+      const rows = [];
+      const add = list => list.forEach(c => {
+        rows.push(c);
+        add(kidsOf(v, c.id).map(k => v.byId[k]).filter(k => k.parent === c.id && vis.has(k.id)).sort((a, b) => a.row - b.row));
+      });
+      add(first);
+      let inner = 0;
+      for (const c of rows) {
+        inner = Math.max(inner, (c.depth - 2) * L.indent + textW(c.name, NAME_FONT) +
+                                (c.addl && state.show.addl ? L.chipGap + chipW(v, c) : 0));
+      }
+      const head = Math.max(textW(short(line.name), HEAD_FONT), textW(lineSub(v, line), SUB_FONT));
+      const w = Math.max(L.trunkInset + L.stub + L.dotR + L.nameGap + inner, L.trunkInset + IR + 12 + head) +
+                L.badgeGap + 2 * L.badgeW + L.badgeSpace + L.padX;
+      // a line with no tenant to show (one that is only an additional parent here) keeps just its header
+      const col = {line, rows, x, w, top, trunk: x + L.trunkInset, iconY: top + L.headH / 2, index: cols.length,
+                   h: L.headH + (rows.length ? 2 * L.rowPad + rows.length * L.rowH : 0)};
+      pos[id] = {x: col.trunk, y: col.iconY};
+      ext[id] = x + w;
+      rows.forEach((c, i) => {
+        pos[c.id] = {x: col.trunk + L.stub + (c.depth - 2) * L.indent, y: top + L.headH + L.rowPad + (i + 0.5) * L.rowH};
+        ext[c.id] = x + w;
+      });
+      colOf[id] = cols.length;
+      cols.push(col);
+      x += w + L.colGap;
+    }
+    const width = Math.max(0, x - L.colGap);
+    const roots = v.cids.filter(c => c.depth === 0 && vis.has(c.id));
+    let left = -30, right = width + 8;
+    roots.forEach((c, i) => {
+      const p = pos[c.id] = {x: width / 2 + i * 300, y: 0};
+      ext[c.id] = p.x + RS + 26 + rootLabelW(v, c) + 2 * L.badgeW + L.badgeSpace;
+      left = Math.min(left, p.x - RS - 10);
+      right = Math.max(right, ext[c.id] + 10);
+    });
+    const bottom = Math.max(RS, ...cols.map(c => c.top + c.h)) + 8;
+    return {pos, ext, cols, colOf, roots, box: {x1: left, y1: -RS - 10, x2: right, y2: bottom}};
+  }
+
+  // ---------- graph drawing
+  // an orthogonal path through the points, with rounded corners
+  function route(pts, rad) {
+    let d = `M${r1(pts[0][0])},${r1(pts[0][1])}`;
+    for (let i = 1; i < pts.length - 1; i++) {
+      const [a, b, c] = [pts[i - 1], pts[i], pts[i + 1]];
+      const l1 = Math.hypot(b[0] - a[0], b[1] - a[1]), l2 = Math.hypot(c[0] - b[0], c[1] - b[1]);
+      const r = Math.min(rad, l1 / 2, l2 / 2);
+      if (r < 0.5) { d += `L${r1(b[0])},${r1(b[1])}`; continue; }
+      const p1 = [b[0] + (a[0] - b[0]) * r / l1, b[1] + (a[1] - b[1]) * r / l1];
+      const p2 = [b[0] + (c[0] - b[0]) * r / l2, b[1] + (c[1] - b[1]) * r / l2];
+      d += `L${r1(p1[0])},${r1(p1[1])}Q${r1(b[0])},${r1(b[1])} ${r1(p2[0])},${r1(p2[1])}`;
+    }
+    const z = pts[pts.length - 1];
+    return d + `L${r1(z[0])},${r1(z[1])}`;
+  }
+  const path = (d, cls) => `<path class="${cls}" d="${d}"/>`;
+  // a setting that is enabled gets its badge; a disabled one leaves its slot empty
+  function badge(kind, on, x, y) {
+    if (!on) return '';
+    const what = kind === 'pol' ? 'Policy Inheritance' : 'Detection Aggregation';
+    return `<g class="badge ${kind}"><title>${what} enabled</title>` +
+      `<rect x="${r1(x)}" y="${r1(y - L.badgeH / 2)}" width="${L.badgeW}" height="${L.badgeH}" rx="4"/>` +
+      `<text x="${r1(x + L.badgeW / 2)}" y="${r1(y)}" dy="0.35em">${kind === 'pol' ? 'P' : 'D'}</text></g>`;
+  }
+  const badges = (c, x, y) => (state.show.pol ? badge('pol', c.pol, x, y) : '') +
+                              (state.show.det ? badge('det', c.det, x + L.badgeW + L.badgeSpace, y) : '');
+  function chip(x, y, text) {
+    const w = textW(text, CHIP_FONT) + 14;
+    return `<g class="chip"><rect x="${r1(x)}" y="${r1(y - 8)}" width="${r1(w)}" height="16" rx="8"/>` +
+      `<text x="${r1(x + 7)}" y="${r1(y)}" dy="0.35em">${esc(text)}</text></g>`;
+  }
+
+  function renderGraph(v, vis) {
+    lay = layout(v, vis);
+    const P = lay.pos, R = L.dotR;
+    const match = matchSet(v);
+    const chain = state.selected && vis.has(state.selected) ? chainOf(v, state.selected) : null;
+    const lit = chain || match;
+    const dim = (...ids) => lit && !ids.every(id => lit.has(id)) ? ' dim' : '';
+    const inChain = (a, b) => chain && chain.has(a) && chain.has(b);
+    const cards = [], base = [], pol = [], halo = [], dash = [], hi = [], nodes = [];
+
+    // root -> service lines: down to the bus, across, down into each card
+    for (const root of lay.roots) {
+      const rp = P[root.id];
+      for (const col of lay.cols) {
+        const line = col.line;
+        if (line.parent !== root.id) continue;
+        const d = route([[rp.x, rp.y + RS + 3], [rp.x, L.busY], [col.trunk, L.busY], [col.trunk, col.iconY - IR - 3]], 10);
+        const purple = line.pol && state.show.pol;
+        base.push(path(d, 'link' + dim(root.id, line.id)));
+        if (purple) pol.push(path(`M${r1(col.trunk)},${L.busY + 10}V${r1(col.iconY - IR - 3)}`, 'link pol' + dim(root.id, line.id)));
+        if (inChain(root.id, line.id)) hi.push(path(d, 'link-hi' + (purple ? ' pol' : '')));
+      }
+    }
+
+    // cards, and the links inside them: the line's trunk to each tenant
+    for (const col of lay.cols) {
+      cards.push(`<g class="card-g${lineOn(col.line.id) ? '' : ' ctx'}"><rect class="card" x="${r1(col.x)}" y="${col.top}" ` +
+        `width="${r1(col.w)}" height="${col.h}" rx="10"/>` +
+        (col.rows.length ? `<path class="card-div" d="M${r1(col.x)},${col.top + L.headH}h${r1(col.w)}"/>` : '') + '</g>');
+      for (const c of col.rows) {
+        const p = P[c.id];
+        const from = c.depth === 2 ? [col.trunk, col.iconY + IR + 3] : [P[c.parent].x, P[c.parent].y + R + 3];
+        const d = route([from, [from[0], p.y], [p.x - R - 3, p.y]], 8);
+        const purple = c.pol && state.show.pol;
+        base.push(path(d, 'link' + dim(c.parent, c.id)));
+        if (purple) pol.push(path(`M${r1(from[0] + 8)},${r1(p.y)}H${r1(p.x - R - 3)}`, 'link pol' + dim(c.parent, c.id)));
+        if (inChain(c.parent, c.id)) hi.push(path(d, 'link-hi' + (purple ? ' pol' : '')));
+      }
+    }
+
+    // additional parents: dashed, from a port on top of the parent's card,
+    // along a channel under the bus, down the gutter left of the tenant's
+    // card, into the tenant's row
+    if (state.show.addl) {
+      const groups = new Map(), sources = [];
+      for (const col of lay.cols) {
+        for (const c of col.rows) {
+          if (!c.addl || !P[c.addl]) continue;
+          const key = c.addl + '>' + col.index;
+          if (!groups.has(key)) groups.set(key, {src: v.byId[c.addl], col, rows: []});
+          groups.get(key).rows.push(c);
+          if (!sources.includes(c.addl)) sources.push(c.addl);
+        }
+      }
+      const gutters = {}, ports = {};
+      for (const {src, col, rows} of groups.values()) {
+        const k = gutters[col.index] = (gutters[col.index] || 0) + 1;
+        const j = ports[src.id] = (ports[src.id] || 0) + 1;
+        const gx = col.x - 8 - (k - 1) * 6;
+        const srcCol = src.depth === 1 ? lay.cols[lay.colOf[src.id]] : null;
+        const px = srcCol ? srcCol.trunk + 22 + (j - 1) * 7 : 0;
+        const cy = L.busY + 8 + Math.min(2, sources.indexOf(src.id)) * 5;
+        for (const c of rows) {
+          const p = P[c.id], end = [col.x + 3, p.y], cls = dim(src.id, c.id);
+          let d;
+          if (srcCol && srcCol !== col) {
+            d = route([[px, srcCol.top], [px, cy], [gx, cy], [gx, p.y], end], 6);
+          } else {
+            const s = P[src.id];
+            d = `M${r1(s.x)},${r1(s.y)}C${r1(s.x - 60)},${r1(s.y)} ${r1(end[0] - 60)},${r1(end[1])} ${r1(end[0])},${r1(end[1])}`;
+          }
+          halo.push(path(d, 'halo'));
+          dash.push(path(d, 'link addl' + cls) + `<circle class="port${cls}" cx="${r1(end[0])}" cy="${r1(end[1])}" r="2.6"/>`);
+          if (srcCol && srcCol !== col) dash.push(`<circle class="port${cls}" cx="${r1(px)}" cy="${srcCol.top}" r="2.6"/>`);
+          if (inChain(src.id, c.id)) hi.push(path(d, 'link-hi addl'));
+        }
+      }
+    }
+
+    // the root: glyph, name, child count and badges
+    for (const root of lay.roots) {
+      const p = P[root.id], lx = p.x + RS + 12, tw = rootLabelW(v, root);
+      nodes.push(`<g class="node${state.selected === root.id ? ' sel' : ''}${dim(root.id)}" data-id="${esc(root.id)}">` +
+        `<rect class="node-bg" x="${r1(p.x - RS - 8)}" y="${r1(p.y - RS - 7)}" width="${r1(2 * RS + 30 + tw + 2 * L.badgeW + L.badgeSpace)}" ` +
+        `height="${r1(2 * RS + 14)}" rx="8"/>` + glyph(p.x, p.y, L.rootScale) +
+        `<text class="t-head" x="${r1(lx)}" y="${r1(p.y - 3)}">${esc(short(root.name))}</text>` +
+        `<text class="t-sub" x="${r1(lx)}" y="${r1(p.y + 13)}">${esc(rootSub(v, root))}</text>` +
+        badges(root, lx + tw + 14, p.y) + '</g>');
+    }
+
+    // each card: the service line in its header, then one row per tenant
+    for (const col of lay.cols) {
+      const line = col.line, hx = col.trunk + IR + 12;
+      nodes.push(`<g class="node${state.selected === line.id ? ' sel' : ''}${lineOn(line.id) ? '' : ' ctx'}${dim(line.id)}" data-id="${esc(line.id)}">` +
+        `<rect class="node-bg" x="${r1(col.x + 4)}" y="${col.top + 4}" width="${r1(col.w - 8)}" height="${L.headH - 8}" rx="7"/>` +
+        glyph(col.trunk, col.iconY, 1) +
+        `<text class="t-head" x="${r1(hx)}" y="${r1(col.iconY - 3)}">${esc(short(line.name))}</text>` +
+        `<text class="t-sub" x="${r1(hx)}" y="${r1(col.iconY + 13)}">${esc(lineSub(v, line))}</text>` +
+        badges(line, badgeX(col), col.iconY) + '</g>');
+      for (const c of col.rows) {
+        const p = P[c.id], [pre, rest] = splitName(c.name), nx = p.x + R + L.nameGap;
+        const cls = 'row' + (inactive(c) ? ' inactive' : '') + (state.selected === c.id ? ' sel' : '') +
+                    (match && match.has(c.id) ? ' match' : '') + dim(c.id);
+        let g = `<g class="${cls}" data-id="${esc(c.id)}">` +
+          `<rect class="node-bg" x="${r1(col.x + 4)}" y="${r1(p.y - L.rowH / 2 + 1)}" width="${r1(col.w - 8)}" height="${L.rowH - 2}" rx="6"/>` +
+          `<circle class="dot" cx="${r1(p.x)}" cy="${r1(p.y)}" r="${R}"/>` +
+          `<text class="t-name" x="${r1(nx)}" y="${r1(p.y)}" dy="0.35em">${pre ? `<tspan class="t-pre">${esc(pre)}</tspan>` : ''}${esc(rest)}</text>`;
+        if (c.addl && state.show.addl) g += chip(nx + textW(c.name, NAME_FONT) + L.chipGap, p.y, chipText(v, c));
+        nodes.push(g + badges(c, badgeX(col), p.y) + '</g>');
+      }
+    }
+
+    port.innerHTML = cards.join('') + base.join('') + pol.join('') + halo.join('') + dash.join('') + hi.join('') + nodes.join('');
+    $('empty').hidden = lay.cols.length + lay.roots.length > 0;
+    if (needFit) { needFit = false; fit(false); }
+  }
+
+  // ---------- pan and zoom
+  const apply = () => port.setAttribute('transform', `translate(${T.x},${T.y}) scale(${T.k})`);
+  function moveTo(to, animate) {
+    cancelAnimationFrame(anim);
+    if (!animate) { T = to; apply(); return; }
+    const from = {...T}, t0 = performance.now();
+    const step = now => {
+      const t = Math.min(1, (now - t0) / 260), q = t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
+      T = {x: from.x + (to.x - from.x) * q, y: from.y + (to.y - from.y) * q, k: from.k + (to.k - from.k) * q};
+      apply();
+      if (t < 1) anim = requestAnimationFrame(step);
+    };
+    anim = requestAnimationFrame(step);
+  }
+  function zoomAt(mx, my, f) {
+    const k = Math.max(L.minScale, Math.min(L.maxScale, T.k * f));
+    cancelAnimationFrame(anim);
+    T = {x: mx - (mx - T.x) * k / T.k, y: my - (my - T.y) * k / T.k, k};
+    apply();
+  }
+  // the part of the canvas not covered by the toolbar, the legend or the drawer
+  function freeArea() {
+    const r = svg.getBoundingClientRect(), ov = $('overlay-left').getBoundingClientRect();
+    return {w: r.width, h: r.height, left: Math.max(20, ov.right - r.left + 24), top: 24, bottom: 36,
+            right: 24 + (drawer.classList.contains('open') ? drawer.offsetWidth : 0)};
+  }
+  function fit(animate) {
+    if (!lay || state.tab !== 'graph') return;
+    const a = freeArea(), b = lay.box, bw = b.x2 - b.x1, bh = b.y2 - b.y1;
+    if (!a.w || !a.h || bw <= 0) return;
+    const aw = Math.max(120, a.w - a.left - a.right), ah = Math.max(120, a.h - a.top - a.bottom);
+    const k = Math.max(L.minScale, Math.min(L.maxFit, aw / bw, ah / bh));
+    moveTo({x: a.left + (aw - bw * k) / 2 - b.x1 * k, y: a.top + Math.max(0, (ah - bh * k) * 0.3) - b.y1 * k, k}, animate);
+  }
+  // a CID's row (or header) runs from a little left of its dot to its card's right edge
+  function centerOn(id) {
+    const p = lay && lay.pos[id];
+    if (!p) return;
+    const a = freeArea(), k = Math.max(T.k, 0.85), mid = (p.x - 20 + lay.ext[id]) / 2;
+    const cx = a.left + (a.w - a.left - a.right) / 2, cy = a.top + (a.h - a.top - a.bottom) / 2;
+    moveTo({x: cx - mid * k, y: cy - p.y * k, k}, true);
+  }
+  // after a click: moves the view only as far as needed for the drawer not to cover the CID's row
+  function keepClear(id) {
+    const p = lay && lay.pos[id];
+    if (!p) return;
+    const a = freeArea(), x1 = T.x + (p.x - 20) * T.k, x2 = T.x + lay.ext[id] * T.k, y = T.y + p.y * T.k;
+    const dx = Math.min(0, a.w - a.right - x2);
+    if (x1 + dx < a.left || y < a.top || y > a.h - a.bottom) centerOn(id);
+    else if (dx) moveTo({x: T.x + dx, y: T.y, k: T.k}, true);
+  }
+
+  svg.addEventListener('wheel', ev => {
+    ev.preventDefault();
+    const r = svg.getBoundingClientRect(), dy = ev.deltaMode === 1 ? ev.deltaY * 16 : ev.deltaY;
+    zoomAt(ev.clientX - r.left, ev.clientY - r.top, Math.exp(-dy * 0.0015));
+  }, {passive: false});
+  let drag = null;
+  svg.addEventListener('pointerdown', ev => {
+    if (ev.button === 0) drag = {x: ev.clientX, y: ev.clientY, tx: T.x, ty: T.y, moved: false};
+  });
+  window.addEventListener('pointermove', ev => {
+    if (!drag) return;
+    const dx = ev.clientX - drag.x, dy = ev.clientY - drag.y;
+    if (!drag.moved && Math.abs(dx) + Math.abs(dy) > 4) { drag.moved = true; svg.classList.add('panning'); }
+    if (drag.moved) { cancelAnimationFrame(anim); T = {x: drag.tx + dx, y: drag.ty + dy, k: T.k}; apply(); }
+  });
+  window.addEventListener('pointerup', ev => {
+    if (!drag) return;
+    const moved = drag.moved;
+    drag = null;
+    svg.classList.remove('panning');
+    if (moved || !svg.contains(ev.target)) return;
+    const hit = ev.target.closest('[data-id]');
+    if (hit) select(hit.getAttribute('data-id'), false); else clearSelection();
+  });
+
+  // ---------- legend
+  function renderLegend(v, vis) {
+    const n = {all: 0, parents: 0, tenants: 0, off: 0, pol: 0, det: 0, addl: 0, links: 0};
+    for (const c of v.cids) {
+      if (!vis.has(c.id)) continue;
+      n.all++;
+      if (c.depth < 2) n.parents++; else n.tenants++;
+      if (inactive(c)) n.off++;
+      if (c.pol) n.pol++;
+      if (c.det) n.det++;
+      if (c.addl && vis.has(c.addl)) n.addl++;
+      if (c.parent && vis.has(c.parent)) n.links++;
+    }
+    const row = (ico, text, count, end = '', cls = '') => `<div class="lg-row${cls}"><span class="lg-ico">${ico}</span>` +
+      `<span class="lg-label">${text}</span><span class="lg-n">${count}</span>${end || '<span></span>'}</div>`;
+    const eye = (act, on, what, id = '') => `<button type="button" class="lg-btn" data-act="${act}"${id ? ` data-id="${esc(id)}"` : ''} ` +
+      `aria-pressed="${on}" title="${on ? 'Hide' : 'Show'} ${esc(what)}">${on ? EYE : EYE_OFF}</button>`;
+    const lines = linesOf(v).map(id => {
+      const on = lineOn(id), count = v.cids.filter(c => c.depth >= 2 && c.line === id).length;
+      return `<div class="lg-row${on ? '' : ' off'}${state.solo === id ? ' solo' : ''}"><span class="lg-ico">${glyphIcon(14)}</span>` +
+        `<button type="button" class="lg-solo" data-act="solo" data-id="${esc(id)}" title="Show only this service line">${esc(lineTag(v, id))}</button>` +
+        `<span class="lg-n">${count}</span>${eye('line', on, lineTag(v, id), id)}</div>`;
+    }).join('');
+    const reset = state.solo || state.hidden.size ? '<button type="button" class="lg-reset" data-act="all">Show all service lines</button>' : '';
+    $('legend').innerHTML =
+      `<div class="lg-title"><span>Legend</span><button type="button" class="lg-btn" data-act="legend" title="Hide legend">${PANEL}</button></div>` +
+      row(STACK, 'All CIDs', n.all) +
+      row(glyphIcon(20), 'Parent CIDs', n.parents, `<button type="button" class="lg-btn${state.linesOpen ? ' open' : ''}" data-act="lines" ` +
+          `aria-expanded="${state.linesOpen}" title="Service lines">${CHEVRON}</button>`) +
+      (state.linesOpen ? `<div class="lg-sub">${lines}${reset}</div>` : '') +
+      row('<span class="ico-dot"></span>', 'Tenant CIDs', n.tenants) +
+      (n.off ? row('<span class="ico-dot off"></span>', 'Inactive CIDs', n.off) : '') +
+      '<div class="lg-section">Links and settings</div>' +
+      row(LG_LINK, 'Parent link', n.links) +
+      row(lgBadge('pol', 'P'), 'Policy Inheritance enabled', n.pol, eye('pol', state.show.pol, 'Policy Inheritance'), state.show.pol ? '' : ' off') +
+      row(lgBadge('det', 'D'), 'Detection Aggregation enabled', n.det, eye('det', state.show.det, 'Detection Aggregation'), state.show.det ? '' : ' off') +
+      row(LG_ADDL, 'Additional parent', n.addl, eye('addl', state.show.addl, 'additional parents'), state.show.addl ? '' : ' off');
+    $('legend').hidden = !state.legend;
+    $('tb-legend').setAttribute('aria-pressed', String(state.legend));
+  }
+
+  // ---------- table
+  const COLS = [
+    {key: 'name', label: 'CID name', get: c => c.name.toLowerCase()},
+    {key: 'type', label: 'Type', get: c => Math.min(c.depth, 2)},
+    {key: 'line', label: 'Service line', get: (c, v) => c.depth ? lineTag(v, c.line).toLowerCase() : ''},
+    {key: 'addl', label: 'Additional parent', get: (c, v) => c.addl ? label(v, c.addl).toLowerCase() : '~'},
+    {key: 'status', label: 'Status', get: c => c.new ? 'new' : c.status},
+    {key: 'endpoints', label: 'Endpoints', num: true, get: c => c.new ? -1 : Number(c.endpoints) || 0},
+    {key: 'pol', label: 'Policy Inheritance', get: c => c.pol ? 0 : 1},
+    {key: 'det', label: 'Detection Aggregation', get: c => c.det ? 0 : 1},
+    {key: 'kids', label: 'Child CIDs', num: true, get: (c, v) => kidsOf(v, c.id).length},
+    {key: 'id', label: 'CID String', get: c => c.id}];
+
+  function renderTable(v, vis) {
+    const match = matchSet(v), s = state.sort, col = COLS.find(k => k.key === s.key);
+    let rows = v.cids.filter(c => vis.has(c.id) && (!match || match.has(c.id)));
+    if (col) {
+      rows = rows.slice().sort((a, b) => {
+        const x = col.get(a, v), y = col.get(b, v);
+        return (x < y ? -1 : x > y ? 1 : 0) * s.dir || a.row - b.row;
+      });
+    }
+    const dash = '<span class="muted">—</span>';
+    const head = COLS.map(k => {
+      const on = s.key === k.key;
+      return `<th class="${k.num ? 'num' : ''}" data-sort="${k.key}" aria-sort="${on ? (s.dir > 0 ? 'ascending' : 'descending') : 'none'}">` +
+        `<button type="button">${k.label}<span>${on ? (s.dir > 0 ? '↑' : '↓') : ''}</span></button></th>`;
+    }).join('');
+    const body = rows.map(c => {
+      const [pre, rest] = splitName(c.name);
+      const ico = c.depth < 2 ? glyphIcon(16) : `<span class="t-dot${inactive(c) ? ' off' : ''}"></span>`;
+      return `<tr data-id="${esc(c.id)}" class="${state.selected === c.id ? 'sel' : ''}">` +
+        `<td style="padding-left: ${12 + (col ? 0 : Math.min(c.depth, 4) * 20)}px"><span class="nm">${ico}<span>` +
+        `${pre ? `<span class="muted">${esc(pre)}</span>` : ''}${esc(rest)}</span></span></td>` +
+        `<td>${['Root CID', 'Service line', 'Tenant'][Math.min(c.depth, 2)]}</td>` +
+        `<td>${c.depth ? esc(lineTag(v, c.line)) : dash}</td>` +
+        `<td>${c.addl ? esc(label(v, c.addl)) : dash}</td>` +
+        `<td>${statusPill(c)}</td>` +
+        `<td class="num">${c.new ? dash : fmt(c.endpoints)}</td>` +
+        `<td>${onOff(c.pol, 'pol')}</td><td>${onOff(c.det, 'det')}</td>` +
+        `<td class="num">${kidsOf(v, c.id).length}</td>` +
+        `<td><span class="c-cid"><code>${esc(c.id)}</code>` +
+        `${c.new ? '' : `<button type="button" class="copy" data-copy="${esc(c.id)}" title="Copy CID String">${COPY}</button>`}</span></td></tr>`;
+    }).join('');
+    $('cid-table').innerHTML = `<thead><tr>${head}</tr></thead><tbody>` +
+      (body || `<tr><td colspan="${COLS.length}" class="muted empty-row">No CIDs match the search or the filter.</td></tr>`) + '</tbody>';
+    $('table-bar').innerHTML = linesOf(v).map(id => `<button type="button" class="chip-btn" data-act="line" data-id="${esc(id)}" ` +
+      `aria-pressed="${lineOn(id)}">${glyphIcon(14)}${esc(lineTag(v, id))}</button>`).join('') +
+      (state.solo || state.hidden.size ? '<button type="button" class="link-btn" data-act="all">Show all</button>' : '') +
+      `<span class="bar-n"><b>${rows.length}</b> of ${v.cids.length} CIDs</span>`;
+  }
+
+  // ---------- details drawer
+  function goRow(v, id, tag) {
+    const c = v.byId[id];
+    const ico = c.depth < 2 ? glyphIcon(14) : `<span class="mini-dot${inactive(c) ? ' off' : ''}"></span>`;
+    return `<button type="button" class="dw-go" data-goto="${esc(id)}">${ico}<span>${esc(c.name)}</span>` +
+      (tag ? `<span class="tag">${tag}</span>` : '') + '</button>';
+  }
+  function drawerHTML(v, c) {
+    const kind = c.depth === 0 ? 'Root CID' : c.depth === 1 ? 'Service line' : 'Tenant · ' + lineTag(v, c.line);
+    const ico = c.depth < 2 ? glyphIcon(26) : '<svg width="26" height="26" viewBox="-13 -13 26 26" aria-hidden="true"><circle class="dot" r="7"/></svg>';
+    const parents = [[c.parent, 'Primary'], [c.addl, 'Additional']].filter(([p]) => p && v.byId[p])
+      .map(([p, tag]) => goRow(v, p, tag)).join('') || '<div class="dw-none">None, this is the root</div>';
+    const kids = kidsOf(v, c.id).map(id => v.byId[id]).sort((a, b) => a.row - b.row)
+      .map(k => goRow(v, k.id, k.addl === c.id ? 'Additional' : '')).join('');
+    const set = (name, on, cls) => `<div class="dw-set"><span>${name}</span>${onOff(on, cls)}</div>`;
+    return `<div class="dw-head">${ico}<div class="dw-title"><div class="dw-name">${esc(c.name)}</div>` +
+      `<div class="dw-kind">${esc(kind)}</div></div><button type="button" class="icon-btn" data-act="close" aria-label="Close details">${CLOSE}</button></div>` +
+      `<div class="dw-sec"><div class="dw-label">CID String</div><div class="dw-cid"><code>${esc(c.id)}</code>` +
+      `${c.new ? '<span class="pill new">To be created</span>' : `<button type="button" class="btn-sm" data-copy="${esc(c.id)}">Copy</button>`}</div></div>` +
+      `<div class="dw-stats"><div><div class="dw-label">Status</div>${statusPill(c)}</div>` +
+      `<div><div class="dw-label">Endpoints</div><div class="dw-num">${c.new ? '—' : fmt(c.endpoints)}</div></div>` +
+      `<div><div class="dw-label">Child CIDs</div><div class="dw-num">${kidsOf(v, c.id).length}</div></div></div>` +
+      `<div class="dw-sec"><div class="dw-label">Parents</div>${parents}</div>` +
+      `<div class="dw-sec"><div class="dw-label">Settings</div>${set('Policy Inheritance', c.pol, 'pol')}` +
+      `${set('Detection Aggregation', c.det, 'det')}${set('Incident Aggregation', c.inc, 'det')}</div>` +
+      (kids ? `<div class="dw-sec"><div class="dw-label">Child CIDs</div>${kids}</div>` : '');
+  }
+  function renderDrawer(v) {
+    const c = state.selected && v.byId[state.selected];
+    if (!c) state.selected = '';
+    else drawer.innerHTML = drawerHTML(v, c);
+    drawer.classList.toggle('open', !!c);
+    drawer.setAttribute('aria-hidden', String(!c));
+    document.body.classList.toggle('has-drawer', !!c);
+  }
+
+  // ---------- state changes
+  function render() {
+    const v = VIEWS[state.view], vis = visibleSet(v);
+    document.querySelectorAll('#view-seg button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.view === state.view)));
+    renderDrawer(v);
+    renderLegend(v, vis);
+    if (state.tab === 'graph') renderGraph(v, vis); else renderTable(v, vis);
+  }
+  function select(id, center) {
+    const v = VIEWS[state.view];
+    if (!v.byId[id]) return;
+    if (!visibleSet(v).has(id)) { state.solo = ''; state.hidden.clear(); needFit = true; }
+    state.selected = id;
+    render();
+    if (state.tab === 'graph') { if (center) centerOn(id); else keepClear(id); }
+    else { const tr = $('cid-table').querySelector(`tr[data-id="${id}"]`); if (tr) tr.scrollIntoView({block: 'nearest'}); }
+  }
+  function clearSelection() { if (state.selected) { state.selected = ''; render(); } }
+  function act(name, id) {
+    if (name === 'line') {
+      if (state.solo) { state.hidden = new Set(DATA.lineOrder.filter(x => x !== state.solo)); state.solo = ''; }
+      if (state.hidden.has(id)) state.hidden.delete(id); else state.hidden.add(id);
+      needFit = true;
+    } else if (name === 'solo') { state.solo = state.solo === id ? '' : id; needFit = true; }
+    else if (name === 'all') { state.solo = ''; state.hidden.clear(); needFit = true; }
+    else if (name === 'lines') state.linesOpen = !state.linesOpen;
+    else if (name === 'legend') { state.legend = !state.legend; }
+    else if (name in state.show) { state.show[name] = !state.show[name]; needFit = needFit || name === 'addl'; }
+    render();
+    if (name === 'legend') fit(true);
+  }
+  function setView(view) { state.view = view; needFit = true; render(); }
+  function setTab(tab) {
+    state.tab = tab;
+    document.querySelectorAll('.tab').forEach(b => b.setAttribute('aria-selected', String(b.dataset.tab === tab)));
+    $('graph-pane').hidden = tab !== 'graph';
+    $('table-pane').hidden = tab !== 'table';
+    render();
+  }
+  function sortBy(key) {
+    const s = state.sort;
+    state.sort = s.key !== key ? {key, dir: 1} : s.dir > 0 ? {key, dir: -1} : {key: '', dir: 1};
+    render();
+  }
+  // Copy button: falls back to a hidden textarea where the clipboard API is
+  // not available (a page opened from disk is not always a secure context)
+  function copyText(text, button) {
+    const done = () => {
+      if (button.textContent === 'Copy') { button.textContent = 'Copied'; setTimeout(() => { button.textContent = 'Copy'; }, 1200); }
+      else { button.classList.add('done'); setTimeout(() => button.classList.remove('done'), 1200); }
+    };
+    if (navigator.clipboard && window.isSecureContext) { navigator.clipboard.writeText(text).then(done, () => {}); return; }
+    const area = document.createElement('textarea');
     area.value = text;
     document.body.appendChild(area);
     area.select();
     try { document.execCommand('copy'); done(); } catch (err) {}
     document.body.removeChild(area);
   }
-  detailPanel.addEventListener('click', function (event) {
-    var button = event.target.closest('[data-copy]');
-    if (button) copyText(button.dataset.copy, button);
+
+  // ---------- events
+  document.addEventListener('click', ev => {
+    const t = ev.target;
+    if (!(t instanceof Element) || svg.contains(t)) return;
+    const copy = t.closest('[data-copy]');
+    if (copy) { ev.stopPropagation(); copyText(copy.dataset.copy, copy); return; }
+    const go = t.closest('[data-goto]');
+    if (go) { select(go.dataset.goto, true); return; }
+    if (t.closest('[data-act="close"]')) { clearSelection(); return; }
+    const a = t.closest('[data-act]');
+    if (a) { act(a.dataset.act, a.dataset.id); return; }
+    const th = t.closest('th[data-sort]');
+    if (th) { sortBy(th.dataset.sort); return; }
+    const tr = t.closest('#cid-table tbody tr[data-id]');
+    if (tr) select(tr.dataset.id, false);
   });
-  backBtn.addEventListener('click', showFilters);
-
-  function checked(cls) {
-    return Array.from(document.querySelectorAll('.' + cls + ':checked')).map(function (el) { return el.value; });
-  }
-
-  // "forward" follows parent -> child; "backward" child -> parent - never
-  // flips direction mid-walk. Only parent links count: the Detection
-  // Aggregation links point child -> parent and would turn the walk around.
-  function walk(startIds, poolSet, direction) {
-    var seen = new Set(startIds);
-    var queue = startIds.slice();
-    var links = edges.get({filter: function (e) { return e.kind === 'link'; }});
-    while (queue.length > 0) {
-      var current = queue.pop();
-      links.forEach(function (e) {
-        if (direction === 'forward' && e.from === current && poolSet.has(e.to) && !seen.has(e.to)) {
-          seen.add(e.to); queue.push(e.to);
-        }
-        if (direction === 'backward' && e.to === current && poolSet.has(e.from) && !seen.has(e.from)) {
-          seen.add(e.from); queue.push(e.from);
-        }
-      });
-    }
-    return seen;
-  }
-
-  function connectedNodes(nodeId) {
-    var pool = new Set(nodes.getIds({filter: function (n) { return !n.hidden; }}));
-    if (!HIGHLIGHT.chain) {
-      return new Set([nodeId].concat(network.getConnectedNodes(nodeId)).filter(function (id) { return pool.has(id); }));
-    }
-    var chain = walk([nodeId], pool, 'forward');
-    walk([nodeId], pool, 'backward').forEach(function (id) { chain.add(id); });
-    return chain;
-  }
-
-  function highlight(nodeId) {
-    clearHighlight();
-    var on = connectedNodes(nodeId);
-    lit = Array.from(on);
-    nodes.update(lit.map(function (id) {
-      var fill = BASE_LOOK[id].color;
-      return {id: id, opacity: 1, font: {color: '#ffffff'}, borderWidth: 3, borderWidthSelected: 4,
-              color: {background: fill, border: HIGHLIGHT.color,
-                      highlight: {background: fill, border: HIGHLIGHT.color},
-                      hover: {background: fill, border: HIGHLIGHT.color}},
-              shadow: {enabled: true, color: HIGHLIGHT.color, size: 18, x: 0, y: 0}};
-    }));
-    var faded = {color: 'rgba(85,85,85,0.25)', highlight: 'rgba(85,85,85,0.25)', hover: 'rgba(85,85,85,0.25)', inherit: false};
-    edges.update(edges.get().map(function (e) {
-      var inChain = on.has(e.from) && on.has(e.to);
-      return {id: e.id, color: inChain ? e.full : faded, width: inChain ? e.baseWidth + HIGHLIGHT.width : e.baseWidth};
-    }));
-  }
-
-  function clearHighlight() {
-    if (lit.length === 0) return;
-    nodes.update(lit.map(function (id) {
-      var base = BASE_LOOK[id];
-      return {id: id, color: base.color, opacity: base.opacity, font: base.font,
-              borderWidth: 1, borderWidthSelected: 2, shadow: false};
-    }));
-    edges.update(edges.get().map(function (e) { return {id: e.id, color: e.base, width: e.baseWidth}; }));
-    lit = [];
-  }
-
-  // the view restricts the universe (pool). Ticked service lines keep the
-  // line and every tenant linked to it (as primary or additional parent);
-  // each tenant brings its parents up to the root, both when it has two.
-  function computeVisible(view, lines) {
-    var pool = nodes.getIds({filter: function (n) { return n.view === view; }});
-    if (lines.length === 0) return new Set(pool);
-    var poolSet = new Set(pool);
-    var base = [];
-    pool.forEach(function (id) {
-      var n = nodes.get(id);
-      if (n.layer !== 'root' && n.lines.some(function (l) { return lines.indexOf(l) !== -1; })) base.push(id);
-    });
-    var visible = new Set(base);
-    walk(base, poolSet, 'backward').forEach(function (id) { visible.add(id); });
-    return visible;
-  }
-
-  // the Tenants table: visible tenants per service line (by primary
-  // parent's line), and the total
-  function updateCounts(visible) {
-    var counts = {}, total = 0;
-    visible.forEach(function (id) {
-      var n = nodes.get(id);
-      if (n.layer === 'tenant') { counts[n.line] = (counts[n.line] || 0) + 1; total++; }
-    });
-    function row(dot, label, n, cls) {
-      return '<div class="cb-row' + (cls ? ' ' + cls : '') + '">' +
-        (dot ? '<span class="cb-dot" style="background:' + dot + '"></span>' : '') +
-        '<span class="cb-label">' + label + '</span><span class="cb-n">' + n + '</span></div>';
-    }
-    document.getElementById('counts-box').innerHTML = '<div class="sp-title">Tenants</div>' +
-      LINES.map(function (l) { return row(l[2], l[3], counts[l[0]] || 0); }).join('') +
-      row(null, 'Total', total, 'cb-total');
-  }
-
-  var NODE_FONT = '14px arial';
-  var NODE_LABEL = 20;
-
-  var measure = document.createElement('canvas').getContext('2d');
-  function textWidth(text, font) {
-    measure.font = font;
-    return measure.measureText(text).width;
-  }
-
-  // each node's name width (measured once per node)
-  var nameWidths = {};
-  function nameWidth(id) {
-    if (!(id in nameWidths)) nameWidths[id] = textWidth(nodes.get(id).name, NODE_FONT);
-    return nameWidths[id];
-  }
-
-  // how far a root or line node reaches to each side: half its label or its
-  // dot, whichever is wider
-  function halfWidth(id) {
-    return Math.max(LAYOUT.nodeSize, nameWidth(id) / 2);
-  }
-
-  function widest(ids) {
-    return ids.reduce(function (most, id) { return Math.max(most, halfWidth(id)); }, LAYOUT.nodeSize);
-  }
-
-  // a tenant's name sits to the right of its dot, LAYOUT.labelGap px away,
-  // vertically centered on it: where it starts and ends
-  function nameBox(n, p) {
-    var start = p.x + n.size + LAYOUT.labelGap;
-    return {left: start, right: start + nameWidth(n.id), top: p.y - NODE_LABEL / 2, bottom: p.y + NODE_LABEL / 2};
-  }
-
-  function shownTenants() {
-    var shown = nodes.get({filter: function (n) { return !n.hidden && n.layer === 'tenant'; }});
-    var positions = network.getPositions(shown.map(function (n) { return n.id; }));
-    return shown.map(function (n) { return {node: n, p: positions[n.id], box: nameBox(n, positions[n.id])}; });
-  }
-
-  // tenant names, drawn over the graph in each node's font color
-  network.on('afterDrawing', function (ctx) {
-    ctx.save();
-    ctx.font = NODE_FONT;
-    ctx.textAlign = 'left';
-    ctx.textBaseline = 'middle';
-    shownTenants().forEach(function (t) {
-      ctx.fillStyle = t.node.font.color;
-      ctx.fillText(t.node.name, t.box.left, t.p.y);
-    });
-    ctx.restore();
+  document.querySelectorAll('#view-seg button').forEach(b => b.addEventListener('click', () => setView(b.dataset.view)));
+  document.querySelectorAll('.tab').forEach(b => b.addEventListener('click', () => setTab(b.dataset.tab)));
+  $('tb-legend').addEventListener('click', () => act('legend'));
+  $('tb-fit').addEventListener('click', () => fit(true));
+  $('tb-in').addEventListener('click', () => { const a = freeArea(); zoomAt(a.w / 2, a.h / 2, 1.25); });
+  $('tb-out').addEventListener('click', () => { const a = freeArea(); zoomAt(a.w / 2, a.h / 2, 0.8); });
+  const search = $('search');
+  search.addEventListener('input', () => { state.query = search.value; render(); });
+  search.addEventListener('keydown', ev => {
+    if (ev.key !== 'Enter') return;
+    const v = VIEWS[state.view], m = matchSet(v), vis = visibleSet(v);
+    const first = m && v.cids.find(c => m.has(c.id) && vis.has(c.id));
+    if (first) select(first.id, true);
   });
-
-  // the tenant whose name is under a canvas point, if any
-  function nameAt(point) {
-    var hit = null;
-    shownTenants().forEach(function (t) {
-      var b = t.box;
-      if (point.x >= b.left && point.x <= b.right && point.y >= b.top && point.y <= b.bottom) hit = t.node.id;
-    });
-    return hit;
-  }
-
-  // the tree, from the visible CIDs only (a filter leaves no gaps): root,
-  // service lines and tenants in three columns, far enough apart for the
-  // widest root and line labels. Each service line gets a band, in LINES
-  // order (name order) top to bottom; its tenants (by primary parent) are
-  // stacked one below the other, LAYOUT.rowHeight apart. A line sits at the
-  // middle of its band, the root at the middle of the lines.
-  function layoutTree(visible) {
-    var byLayer = {root: [], line: [], tenant: []};
-    visible.forEach(function (id) { byLayer[nodes.get(id).layer].push(id); });
-    Object.keys(byLayer).forEach(function (layer) {
-      byLayer[layer].sort(function (a, b) { return nodes.get(a).row - nodes.get(b).row; });
-    });
-    var rootHalf = widest(byLayer.root), lineHalf = widest(byLayer.line);
-    var lineX = rootHalf + lineHalf + LAYOUT.columnGap;
-    var tenantX = lineX + lineHalf + LAYOUT.columnGap;
-    var lineOf = {}, bands = {};
-    byLayer.line.forEach(function (id) { lineOf[nodes.get(id).line] = id; });
-    byLayer.tenant.forEach(function (id) {
-      var key = nodes.get(id).line;
-      (bands[key] = bands[key] || []).push(id);
-    });
-    // tenants with an additional parent first (top of the band), each group
-    // in name order
-    Object.keys(bands).forEach(function (key) {
-      bands[key].sort(function (a, b) {
-        return (nodes.get(b).extra - nodes.get(a).extra) || (nodes.get(a).row - nodes.get(b).row);
-      });
-    });
-    var updates = [], centers = [], y = 0;
-    LINES.forEach(function (l) {
-      var tenants = bands[l[0]] || [], lineId = lineOf[l[0]];
-      if (!lineId && tenants.length === 0) return;
-      tenants.forEach(function (id, i) {
-        updates.push({id: id, x: tenantX, y: y + i * LAYOUT.rowHeight});
-      });
-      var height = tenants.length ? (tenants.length - 1) * LAYOUT.rowHeight : 0;
-      if (lineId) {
-        updates.push({id: lineId, x: lineX, y: y + height / 2});
-        centers.push(y + height / 2);
-      }
-      y += height + LAYOUT.bandGap;
-    });
-    var rootY = centers.length ? (Math.min.apply(null, centers) + Math.max.apply(null, centers)) / 2 : 0;
-    byLayer.root.forEach(function (id, i) { updates.push({id: id, x: 0, y: rootY + i * LAYOUT.bandGap}); });
-    nodes.update(updates);
-  }
-
-  // the area each visible CID takes, dot and name, from its live position
-  // (a dragged node is followed)
-  function frameRects() {
-    var shown = nodes.get({filter: function (n) { return !n.hidden; }});
-    var positions = network.getPositions(shown.map(function (n) { return n.id; }));
-    return shown.map(function (n) {
-      var p = positions[n.id], r = n.size;
-      if (n.layer === 'tenant') {
-        var box = nameBox(n, p);
-        return {left: p.x - r, right: box.right, top: Math.min(p.y - r, box.top), bottom: Math.max(p.y + r, box.bottom)};
-      }
-      return {left: p.x - halfWidth(n.id), right: p.x + halfWidth(n.id), top: p.y - r, bottom: p.y + r + NODE_LABEL};
-    });
-  }
-
-  // the view that fits the bounds between the given top and bottom margins
-  // (FIT_MARGIN px from the sides); never zooms in past 1
-  var FIT_MARGIN = 24;
-  function framing(b, canvas, marginTop, marginBottom) {
-    var scale = Math.min(1, (canvas.width - 2 * FIT_MARGIN) / (b.right - b.left),
-                         (canvas.height - marginTop - marginBottom) / (b.bottom - b.top));
-    return {x: (b.left + b.right) / 2, y: (b.top + b.bottom) / 2 - (marginTop - marginBottom) / 2 / scale, scale: scale};
-  }
-
-  // whether a CID would fall under one of the overlays in that view
-  function covered(view, rects, canvas, overlays) {
-    var cx = canvas.left + canvas.width / 2, cy = canvas.top + canvas.height / 2;
-    return rects.some(function (r) {
-      var left = cx + (r.left - view.x) * view.scale, right = cx + (r.right - view.x) * view.scale;
-      var top = cy + (r.top - view.y) * view.scale, bottom = cy + (r.bottom - view.y) * view.scale;
-      return overlays.some(function (o) { return left < o.right && right > o.left && top < o.bottom && bottom > o.top; });
-    });
-  }
-
-  // frames every visible CID under the title, as large as fits; when a CID
-  // would then fall under the Tenants table or the Links legend, it keeps
-  // clear of their whole height instead
-  function fitBoxes() {
-    var rects = frameRects();
-    if (rects.length === 0) return;
-    var bounds = {left: Math.min.apply(null, rects.map(function (r) { return r.left; })),
-                  right: Math.max.apply(null, rects.map(function (r) { return r.right; })),
-                  top: Math.min.apply(null, rects.map(function (r) { return r.top; })),
-                  bottom: Math.max.apply(null, rects.map(function (r) { return r.bottom; }))};
-    var canvas = document.querySelector('#mynetwork canvas').getBoundingClientRect();
-    var countsBox = document.getElementById('counts-box').getBoundingClientRect();
-    var legend = document.getElementById('legend').getBoundingClientRect();
-    var titleBottom = document.getElementById('graph-title').getBoundingClientRect().bottom;
-    var freeBottom = Math.min(canvas.bottom, window.innerHeight);
-    var view = framing(bounds, canvas, titleBottom - canvas.top + FIT_MARGIN, canvas.bottom - freeBottom + FIT_MARGIN);
-    if (covered(view, rects, canvas, [countsBox, legend])) {
-      view = framing(bounds, canvas, Math.max(titleBottom, countsBox.bottom) - canvas.top + FIT_MARGIN,
-                     canvas.bottom - Math.min(freeBottom, legend.top) + FIT_MARGIN);
-    }
-    network.moveTo({position: {x: view.x, y: view.y}, scale: view.scale,
-                    animation: {duration: 300, easingFunction: 'easeInOutQuad'}});
-  }
-
-  function applyFilter() {
-    clearHighlight();
-    var visible = computeVisible(currentView, checked('f-line'));
-    nodes.update(nodes.getIds().map(function (id) { return {id: id, hidden: !visible.has(id)}; }));
-    edges.update(edges.get().map(function (e) {
-      return {id: e.id, hidden: !(visible.has(e.from) && visible.has(e.to))};
-    }));
-    layoutTree(visible);
-    updateCounts(visible);
-    emptyState.style.display = visible.size === 0 ? 'block' : 'none';
-    fitBoxes();
-  }
-  document.querySelectorAll('.f-line').forEach(function (el) {
-    el.addEventListener('change', applyFilter);
+  document.addEventListener('keydown', ev => {
+    const typing = ev.target instanceof Element && ev.target.matches('input, textarea');
+    if (ev.key === '/' && !typing) { ev.preventDefault(); search.focus(); search.select(); return; }
+    if (ev.key !== 'Escape') return;
+    if (typing && search.value) { search.value = ''; state.query = ''; render(); }
+    else if (state.selected) clearSelection();
+    else if (typing) ev.target.blur();
   });
-  viewButtons.forEach(function (b) {
-    b.addEventListener('click', function () { setView(b.dataset.view); showFilters(); applyFilter(); });
+  // theme: dark by default, as in the Falcon console; the choice is kept by the browser
+  const root = document.documentElement;
+  try { if (localStorage.getItem('fc-theme') === 'light') root.setAttribute('data-theme', 'light'); } catch (err) {}
+  $('theme-btn').addEventListener('click', () => {
+    const next = root.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
+    root.setAttribute('data-theme', next);
+    try { localStorage.setItem('fc-theme', next); } catch (err) {}
   });
-  setView(currentView);
-  network.setSize('100%', '100%');
-  applyFilter();
-  // vis-network adjusts the view on its own on the first draw and on a
-  // resize, which undoes the framing - framed again right after
-  network.once('afterDrawing', function () { setTimeout(fitBoxes, 0); });
-  network.on('resize', function () { setTimeout(fitBoxes, 0); });
-  window.addEventListener('resize', function () { setTimeout(fitBoxes, 0); });
+  window.addEventListener('resize', () => fit(false));
 
-  // a click on a tenant's name selects it, like a click on its dot
-  network.on('click', function (params) {
-    var id = params.nodes.length > 0 ? params.nodes[0] : nameAt(params.pointer.canvas);
-    if (id) {
-      network.selectNodes([id]);
-      highlight(id);
-      showDetail(id);
-    } else {
-      showFilters();
-    }
-  });
-
+  $('stamp').innerHTML = `CID export <b>${esc(DATA.exported)}</b> &#183; Generated <b>${esc(DATA.generated)}</b>`;
+  render();
 })();
-</script>
 """
 
-# The same page pyvis writes (vis-network 9.1.2 from cdnjs), with the side
-# panel and the script above added.
-PAGE = """<html>
-<head>
-<meta charset="utf-8">
-<title>%%TAB_TITLE%%</title>
-<link rel="icon" href="%%FAVICON%%">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/vis-network/9.1.2/dist/dist/vis-network.min.css" integrity="sha512-WgxfT5LWjfszlPHXRmBWHkV2eceiWTOBvrKCNbdgDYTHrT2AeLCGbF4sZlZw3UMN3WtL0tGUoIAKsu8mllg/XA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-<script src="https://cdnjs.cloudflare.com/ajax/libs/vis-network/9.1.2/dist/vis-network.min.js" integrity="sha512-LnvoEWDFrqGHlHmDD2101OrLcbsfkrzoSpvtSQtxK3RMnRV0eOkhhBN2dXHKRrUU8p2DGRTk35n4O8nWSVe1mQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-<style type="text/css">
-  *, *::before, *::after { box-sizing: border-box; }
-  #mynetwork { width: 100%; height: 100vh; background-color: #000000; border: 1px solid lightgray; position: relative; float: left; }
-</style>
-</head>
-<body>
-<div class="card" style="width: 100%">
-  <div id="mynetwork" class="card-body"></div>
-</div>
-<script type="text/javascript">
-  var nodes = new vis.DataSet(%%NODES%%);
-  var edges = new vis.DataSet(%%EDGES%%);
-  var network = new vis.Network(document.getElementById('mynetwork'), {nodes: nodes, edges: edges}, %%OPTIONS%%);
-</script>
-%%SIDE_PANEL%%
-<script>var LAYOUT = %%LAYOUT%%; var HIGHLIGHT = %%HIGHLIGHT%%; var LINES = %%LINES%%;</script>
-%%FILTER_SCRIPT%%
-</body>
-</html>
-"""
-
-def js(value):
-  """JSON for an inline <script>: '</' is escaped so no string can close the tag."""
-  return json.dumps(value, ensure_ascii=False).replace("</", "<\\/")
 
 
-
-#################################### Part 7: HTML Generation ->
+#################################### Part 8: HTML Generation ->
 
 def build_page(today, t_info, expected, x_info):
   """The whole HTML page: the Expected view (when there is one) and the
-  Today view, in the same graph."""
+  Today view, as data for the page script."""
   exported = datetime.fromtimestamp(os.path.getmtime(INPUT))
   t_roots = t_info[2]
   company = today[t_roots[0]]["name"].split("|")[0].split(" - ", 1)[-1].strip() if t_roots else ""
   views = ([("expected", expected, x_info)] if expected is not None else []) + [("today", today, t_info)]
 
-  # one color per service line, the same in both views
-  line_keys = []
+  # the service lines in name order, the same in both views
+  line_order = []
   for _, _, (order, _, _) in views:
     for c, d in order:
-      if d == 1 and c not in line_keys: line_keys.append(c)
-  color_of = {c: LINE_COLORS[i % len(LINE_COLORS)] for i, c in enumerate(line_keys)}
+      if d == 1 and c not in line_order: line_order.append(c)
 
-  all_nodes, all_edges = [], []
-  for key, recs, info in views:
-    nodes, edges = graph_view(key, recs, info, color_of)
-    all_nodes += nodes
-    all_edges += edges
-  lines_js = [[c, line_text(name_of(c, today, expected)), color_of[c], short(name_of(c, today, expected))]
-              for c in line_keys]
-
-  stamp = "%b %d, %Y &#183; %H:%M"
-  updated = ('<div class="sp-title">Source</div>'
-             f'<div class="ua-row"><span>CID export</span><span class="ua-value">{exported.strftime(stamp)}</span></div>'
-             f'<div class="ua-row"><span>Generated</span><span class="ua-value">{datetime.now().strftime(stamp)}</span></div>')
+  stamp = "%b %d, %Y · %H:%M"
+  data = {"order": [k for k, _, _ in views], "views": {k: view_data(recs, info) for k, recs, info in views},
+          "lineOrder": line_order, "exported": exported.strftime(stamp), "generated": datetime.now().strftime(stamp)}
   view_buttons = "".join(
-    f'<button type="button" class="vt-btn" data-view="{k}" style="--vc: {VIEW_STYLE[k][2]}">'
-    f'<b>{e(VIEW_STYLE[k][0])}</b><span>{e(VIEW_STYLE[k][1])}</span></button>' for k, _, _ in views)
-  side_panel = (SIDE_PANEL.replace("%%UPDATED%%", updated)
-                .replace("%%TITLE%%", e(TITLE))
-                .replace("%%VIEW_BUTTONS%%", view_buttons)
-                .replace("%%FILTER_GROUPS%%", line_filter(lines_js))
-                .replace("%%POLICY%%", POLICY_COLOR).replace("%%DETECTION%%", DETECTION_COLOR)
-                .replace("%%LINK%%", LINK_COLOR).replace("%%LINK_OPACITY%%", str(LINK_OPACITY)))
-
-  layout = {"nodeSize": NODE_SIZE, "rowHeight": ROW_HEIGHT, "labelGap": LABEL_GAP, "columnGap": COLUMN_GAP,
-            "bandGap": BAND_GAP}
-  options = {"physics": {"enabled": False}, "edges": {"arrows": {"to": {"scaleFactor": 0.5}}, "selectionWidth": 0, "hoverWidth": 0}}
-  highlight = {"color": HIGHLIGHT_COLOR, "chain": HIGHLIGHT_CHAIN, "width": HIGHLIGHT_WIDTH}
+    f'<button type="button" data-view="{k}" title="{e(VIEW_STYLE[k][1])}" style="--vc: {VIEW_STYLE[k][2]}">'
+    f'<span class="sw"></span>{e(VIEW_STYLE[k][0])}</button>' for k, _, _ in views)
+  css = (PAGE_CSS.replace("%%DARK%%", css_vars(THEMES["dark"])).replace("%%LIGHT%%", css_vars(THEMES["light"]))
+         .replace("%%FONT%%", LAYOUT["font"]))
+  script = f"var DATA = {js(data)};\nvar LAYOUT = {js(LAYOUT)};\n{PAGE_SCRIPT}"
+  # the script goes in last, so no text from the data is ever read as a marker
   return (PAGE.replace("%%TAB_TITLE%%", e(f"{TAB_TITLE} - {company}" if company else TAB_TITLE))
           .replace("%%FAVICON%%", FAVICON)
-          .replace("%%NODES%%", js(all_nodes))
-          .replace("%%EDGES%%", js(all_edges))
-          .replace("%%OPTIONS%%", js(options))
-          .replace("%%SIDE_PANEL%%", side_panel)
-          .replace("%%LAYOUT%%", js(layout))
-          .replace("%%HIGHLIGHT%%", js(highlight))
-          .replace("%%LINES%%", js(lines_js))
-          .replace("%%FILTER_SCRIPT%%", FILTER_SCRIPT))
+          .replace("%%CSS%%", css)
+          .replace("%%GLYPH%%", GLYPH)
+          .replace("%%APP%%", e(APP_NAME)).replace("%%PAGE%%", e(PAGE_NAME)).replace("%%COMPANY%%", e(company))
+          .replace("%%VIEW_BUTTONS%%", view_buttons)
+          .replace("%%SCRIPT%%", script))
 
 
 if __name__ == "__main__":
