@@ -165,6 +165,7 @@ CS-AI-Flight-Control/
 ├── Review.md                          # The Claude Code skill that runs the review
 ├── CLAUDE.md                          # Points every Claude Code session to Review.md
 ├── .gitignore                         # Keeps your export and the review days out of git
+├── LICENCE.md                         # The MIT License
 ├── Input/
 │   ├── CIDs.csv                       # Your CID export from the Falcon console (not committed)
 │   └── CIDs_example.csv               # Example: a fictional export
@@ -196,4 +197,4 @@ CS-AI-Flight-Control/
 
 ## License
 
-This toolkit is provided as-is for reference and reuse. Adapt it freely to your environment.
+This toolkit is released under the MIT License: use, adapt and redistribute it freely. Full terms in [LICENCE.md](LICENCE.md).
