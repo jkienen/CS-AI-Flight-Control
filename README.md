@@ -61,7 +61,7 @@ CID Name,CID String,Customer ID Checksum (CCID),Status,Is Parent?,Parent,Additio
 
 ### 3. Your rules
 
-Two rules are set at the top of `Output/Scripts/Generate-FlightControl.py` (`Part 1: Setup`). Adjust them to your organization's conventions:
+Two rules are set at the top of `Scripts/Generate-FlightControl.py` (`Part 1: Setup`). Adjust them to your organization's conventions:
 
 <table width="100%">
 <thead>
@@ -73,7 +73,7 @@ Two rules are set at the top of `Output/Scripts/Generate-FlightControl.py` (`Par
 </tbody>
 </table>
 
-> ⚠️ **Never commit your data.** The export and everything generated from it carry your CID Strings and customer names. The repository's `.gitignore` already leaves out `Input/CIDs.csv` and the day folders in `Output/`; only the fictional examples belong in the repository.
+> ⚠️ **Never commit your data.** The export and everything generated from it carry your CID Strings and customer names. Keep `Input/CIDs.csv` and the day folders in `Output/` out of the repository; only the fictional examples belong there.
 
 </details>
 
@@ -88,7 +88,7 @@ The repository ships a finished review of a fictional company, *Example Corp*: o
 cp Input/CIDs_example.csv Input/CIDs.csv
 mkdir -p Output/$(date +%F)
 cp Output/Example/CIDs_Expected.csv Output/$(date +%F)/
-python Output/Scripts/Generate-FlightControl.py
+python Scripts/Generate-FlightControl.py
 ```
 → today's folder gets the same page and the same `Case_Message.txt` as `Output/Example/`
 
@@ -103,17 +103,17 @@ python Output/Scripts/Generate-FlightControl.py
 ### Running the generator directly
 
 ```bash
-python Output/Scripts/Generate-FlightControl.py
+python Scripts/Generate-FlightControl.py
 ```
 → `Output/<YYYY-MM-DD>/CIDs.html`, plus `Case_Message.txt` when the day has an expected structure
 
 ```bash
-python Output/Scripts/Generate-FlightControl.py --init-expected
+python Scripts/Generate-FlightControl.py --init-expected
 ```
 → `Output/<YYYY-MM-DD>/CIDs_Expected.csv`, a copy of the export to start correcting from
 
 ```bash
-python Output/Scripts/Generate-FlightControl.py --keep-expected
+python Scripts/Generate-FlightControl.py --keep-expected
 ```
 → copies the latest `CIDs_Expected.csv` of an earlier day into today's folder, to go on from where that review stopped
 
@@ -164,19 +164,18 @@ The day's `Case_Message.txt` is the ticket, in English:
 CS-AI-Flight-Control/
 ├── Review.md                          # The Claude Code skill that runs the review
 ├── CLAUDE.md                          # Points every Claude Code session to Review.md
-├── .gitignore                         # Keeps your export and the review days out of git
 ├── LICENCE.md                         # The MIT License
+├── Scripts/
+│   └── Generate-FlightControl.py      # Compares export and expected structure; writes page and ticket
 ├── Input/
-│   ├── CIDs.csv                       # Your CID export from the Falcon console (not committed)
+│   ├── CIDs.csv                       # Your CID export from the Falcon console (do not commit)
 │   └── CIDs_example.csv               # Example: a fictional export
 ├── Output/
-│   ├── Scripts/
-│   │   └── Generate-FlightControl.py  # Compares export and expected structure; writes page and ticket
 │   ├── Example/                       # Example: a finished review of the fictional export
 │   │   ├── CIDs_Expected.csv
 │   │   ├── CIDs.html
 │   │   └── Case_Message.txt
-│   └── <YYYY-MM-DD>/                  # One folder per review day (not committed)
+│   └── <YYYY-MM-DD>/                  # One folder per review day (do not commit)
 │       ├── CIDs_Expected.csv          # The expected structure: the source of every correction
 │       ├── CIDs.html                  # The generated page (graph and table)
 │       └── Case_Message.txt           # The generated support ticket
